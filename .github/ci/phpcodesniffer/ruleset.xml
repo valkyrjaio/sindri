@@ -1,0 +1,26 @@
+<ruleset name="ValkyrjaProjectStandards">
+    <rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
+        <properties>
+            <property name="rootNamespaces" type="array">
+                <element key="src/Sindri" value="Sindri" />
+                <element key="tests/Tests" value="Sindri\Tests" />
+            </property>
+            <property name="skipDirs" type="array">
+                <element value=".github" />
+                <element value="pre-commit-hooks" />
+                <element value="vendor" />
+            </property>
+        </properties>
+    </rule>
+
+    <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
+        <properties>
+            <property name="allowPartialUses" type="bool" value="false" />
+            <property name="allowFullyQualifiedNameForCollidingClasses" type="bool" value="false" />
+            <property name="searchAnnotations" type="bool" value="true" />
+        </properties>
+    </rule>
+
+    <exclude-pattern>*/.github/*</exclude-pattern>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+</ruleset>

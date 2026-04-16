@@ -1,0 +1,14 @@
+{
+  "require"           : {
+    "php" : ">=8.4"
+  },
+  "require-dev"       : {
+    "valkyrja/rector" : "^26.1.0"
+  },
+  "scripts"           : {
+    "fix"   : "vendor/bin/rector",
+    "check" : "vendor/bin/rector --dry-run"
+  },
+  "minimum-stability" : "dev",
+  "prefer-stable"     : true
+}

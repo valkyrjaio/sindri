@@ -1,0 +1,18 @@
+{
+  "require"           : {
+    "php" : ">=8.4"
+  },
+  "require-dev"       : {
+    "valkyrja/psalm" : "^26.1.0"
+  },
+  "scripts"           : {
+    "check"               : "vendor/bin/psalm --config=psalm.xml --memory-limit=-1 --threads=4 --show-info=false",
+    "no-cache"            : "vendor/bin/psalm --config=psalm.xml --no-cache --memory-limit=-1 --threads=4",
+    "shepherd"            : "vendor/bin/psalm --config=psalm.xml --shepherd --memory-limit=-1 --threads=4",
+    "shepherd-with-stats" : "vendor/bin/psalm --config=psalm.xml --shepherd --memory-limit=-1 --threads=4 --stats",
+    "stats"               : "vendor/bin/psalm --config=psalm.xml --memory-limit=-1 --threads=4 --stats --long-progress",
+    "update-baseline"     : "vendor/bin/psalm --config=psalm.xml --memory-limit=-1 --threads=4 --set-baseline=psalm-baseline.xml --update-baseline"
+  },
+  "minimum-stability" : "dev",
+  "prefer-stable"     : true
+}

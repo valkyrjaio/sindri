@@ -1,0 +1,6 @@
+*
+!/Arkitect
+!.gitignore
+!composer.json
+!composer.lock
+!phparkitect.php

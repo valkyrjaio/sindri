@@ -1,0 +1,19 @@
+{
+  "require"           : {
+    "php" : ">=8.4"
+  },
+  "require-dev"       : {
+    "valkyrja/phpcodesniffer" : "^26.1.0"
+  },
+  "scripts"           : {
+    "check"    : "vendor/bin/phpcs --standard=./ruleset.xml ../../../src -n && vendor/bin/phpcs --standard=./ruleset.xml ../../../tests -n -s",
+    "warnings" : "vendor/bin/phpcs --standard=./ruleset.xml ../../../src && vendor/bin/phpcs --standard=./ruleset.xml ../../../tests -s"
+  },
+  "minimum-stability" : "dev",
+  "prefer-stable"     : true,
+  "config"            : {
+    "allow-plugins" : {
+      "dealerdirect/phpcodesniffer-composer-installer" : true
+    }
+  }
+}

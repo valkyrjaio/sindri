@@ -1,0 +1,121 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "9cadb9411303b846d364424f0ba9a815",
+    "packages": [],
+    "packages-dev": [
+        {
+            "name": "phpstan/phpstan",
+            "version": "2.1.48",
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/231397213efb7c0a066ee024b5c3c87f2d3adfa0",
+                "reference": "231397213efb7c0a066ee024b5c3c87f2d3adfa0",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0"
+            },
+            "conflict": {
+                "phpstan/phpstan-shim": "*"
+            },
+            "bin": [
+                "phpstan",
+                "phpstan.phar"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "PHPStan - PHP Static Analysis Tool",
+            "keywords": [
+                "dev",
+                "static analysis"
+            ],
+            "support": {
+                "docs": "https://phpstan.org/user-guide/getting-started",
+                "forum": "https://github.com/phpstan/phpstan/discussions",
+                "issues": "https://github.com/phpstan/phpstan/issues",
+                "security": "https://github.com/phpstan/phpstan/security/policy",
+                "source": "https://github.com/phpstan/phpstan-src"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/ondrejmirtes",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/phpstan",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-04-15T20:24:19+00:00"
+        },
+        {
+            "name": "valkyrja/phpstan",
+            "version": "v26.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/valkyrjaio/phpstan.git",
+                "reference": "7b63ec22c6bb9131aff27993a4ddc29556f0edb0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/valkyrjaio/phpstan/zipball/7b63ec22c6bb9131aff27993a4ddc29556f0edb0",
+                "reference": "7b63ec22c6bb9131aff27993a4ddc29556f0edb0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.4",
+                "phpstan/phpstan": "^2.1.48"
+            },
+            "type": "project",
+            "autoload": {
+                "psr-4": {
+                    "Valkyrja\\PhpStan\\": "src/PhpStan"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Melech Mizrachi",
+                    "email": "melechmizrachi@gmail.com"
+                }
+            ],
+            "description": "PHPStan for the Valkyrja Project.",
+            "homepage": "https://www.valkyrja.io/",
+            "keywords": [
+                "PHPStan",
+                "ci",
+                "valkyrja"
+            ],
+            "support": {
+                "issues": "https://github.com/valkyrjaio/phpstan/issues",
+                "source": "https://github.com/valkyrjaio/phpstan/tree/v26.1.0"
+            },
+            "time": "2026-04-16T04:41:44+00:00"
+        }
+    ],
+    "aliases": [],
+    "minimum-stability": "dev",
+    "stability-flags": {},
+    "prefer-stable": true,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=8.4"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

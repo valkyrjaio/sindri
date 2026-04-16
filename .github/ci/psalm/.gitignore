@@ -1,0 +1,7 @@
+*
+!.gitignore
+!autoload.php
+!composer.json
+!composer.lock
+!psalm-baseline.xml
+!psalm.xml

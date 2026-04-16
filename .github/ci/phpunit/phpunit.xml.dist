@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         backupGlobals="false"
+         bootstrap="./bootstrap.php"
+         colors="true"
+         processIsolation="false"
+         stopOnError="false"
+         stopOnFailure="false"
+         cacheDirectory=".phpunit.cache"
+         backupStaticProperties="false"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerErrors="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         executionOrder="defects,random"
+         resolveDependencies="true"
+>
+    <coverage>
+        <report>
+            <clover outputFile="build/logs/clover.xml"/>
+            <html outputDirectory="coverage-html"/>
+            <php outputFile="build/cov/coverage.cov"/>
+            <!--      <text outputFile="php://stdout" showUncoveredFiles="true" />-->
+        </report>
+    </coverage>
+
+    <testsuites>
+        <testsuite name="Sindri Test Suite">
+            <directory suffix="Test.php">../../../tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <logging/>
+
+    <source>
+        <include>
+            <directory>../../../src</directory>
+        </include>
+    </source>
+</phpunit>
