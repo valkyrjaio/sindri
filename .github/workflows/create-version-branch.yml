@@ -13,14 +13,14 @@ jobs:
       php-version: '8.4'
       dependencies: |
         [
-          {"name": "Root Packages",   "command": "root-outdated-check-major-release"},
-          {"name": "PHPArkitect",     "command": "phparkitect-outdated-check-major-release"},
-          {"name": "PHP Code Sniffer","command": "phpcodesniffer-outdated-check-major-release"},
-          {"name": "PHP CS Fixer",    "command": "phpcsfixer-outdated-check-major-release"},
-          {"name": "PHPStan",         "command": "phpstan-outdated-check-major-release"},
-          {"name": "PHPUnit",         "command": "phpunit-outdated-check-major-release"},
-          {"name": "Psalm",           "command": "psalm-outdated-check-major-release"},
-          {"name": "Rector",          "command": "rector-outdated-check-major-release"}
+          {"name": "Root Packages",    "command": "root-outdated-check-major-release"},
+          {"name": "PHPArkitect",      "command": "phparkitect-outdated-check-major-release"},
+          {"name": "PHP Code Sniffer", "command": "phpcodesniffer-outdated-check-major-release"},
+          {"name": "PHP CS Fixer",     "command": "phpcsfixer-outdated-check-major-release"},
+          {"name": "PHPStan",          "command": "phpstan-outdated-check-major-release"},
+          {"name": "PHPUnit",          "command": "phpunit-outdated-check-major-release"},
+          {"name": "Psalm",            "command": "psalm-outdated-check-major-release"},
+          {"name": "Rector",           "command": "rector-outdated-check-major-release"}
         ]
 
   get-version:
