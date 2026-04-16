@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Valkyrja Rector package.
+ * This file is part of the Sindri package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
