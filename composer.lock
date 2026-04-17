@@ -332,12 +332,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/valkyrjaio/valkyrja.git",
-                "reference": "48caee0b7ef25b32245cd5cb6e4fea4d29c65c93"
+                "reference": "464be92d678b011018dca36eb709b0319b946fe3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/valkyrjaio/valkyrja/zipball/48caee0b7ef25b32245cd5cb6e4fea4d29c65c93",
-                "reference": "48caee0b7ef25b32245cd5cb6e4fea4d29c65c93",
+                "url": "https://api.github.com/repos/valkyrjaio/valkyrja/zipball/464be92d678b011018dca36eb709b0319b946fe3",
+                "reference": "464be92d678b011018dca36eb709b0319b946fe3",
                 "shasum": ""
             },
             "require": {
@@ -350,7 +350,7 @@
             },
             "conflict": {
                 "filp/whoops": "<2.18.4",
-                "firebase/php-jwt": "<7.0.4",
+                "firebase/php-jwt": "<7.0.5",
                 "guzzlehttp/guzzle": "<7.10.0",
                 "league/flysystem": "<3.33.0",
                 "league/flysystem-aws-s3-v3": "<3.32.0",
@@ -360,11 +360,11 @@
                 "predis/predis": "<3.4.2",
                 "pusher/pusher-php-server": "<7.2.7",
                 "twig/twig": "<3.24.0",
-                "vonage/client-core": "<4.12.0"
+                "vonage/client-core": "<4.13.0"
             },
             "require-dev": {
                 "filp/whoops": "^2.18.4",
-                "firebase/php-jwt": "^7.0.4",
+                "firebase/php-jwt": "^7.0.5",
                 "guzzlehttp/guzzle": "^7.10.0",
                 "league/flysystem": "^3.33.0",
                 "league/flysystem-aws-s3-v3": "^3.32.0",
@@ -374,7 +374,7 @@
                 "predis/predis": "^3.4.2",
                 "pusher/pusher-php-server": "^7.2.7",
                 "twig/twig": "^3.24.0",
-                "vonage/client-core": "^4.12.0"
+                "vonage/client-core": "^4.13.0"
             },
             "suggest": {
                 "ext-curl": "Required to use the default Client adapter (*)",
@@ -382,7 +382,7 @@
                 "ext-redis": "Required to use the default Cache store (^4.0|^5.0).",
                 "ext-sodium": "Required to use the default Crypt adapters and/or JWT EdDSA Algorithm (*)",
                 "filp/whoops": "Required to use the default Throwable handler (^2.18.4)",
-                "firebase/php-jwt": "Required to use the default Jwt adapter (^7.0.4)",
+                "firebase/php-jwt": "Required to use the default Jwt adapter (^7.0.5)",
                 "guzzlehttp/guzzle": "Required to use the default Client adapter (^7.10.0).",
                 "league/flysystem": "Required to use the default Filesystem adapter (^3.33.0).",
                 "league/flysystem-aws-s3-v3": "Required to use the s3 Filesystem adapter (^3.32.0)",
@@ -392,7 +392,7 @@
                 "predis/predis": "Required to use the Redis Cache store (^3.4.2).",
                 "pusher/pusher-php-server": "Required to use the Pusher Broadcast adapter (^7.2.7).",
                 "twig/twig": "Required to use the Twig View engine (^3.24.0).",
-                "vonage/client-core": "Required to use the default SMS adapter (^4.12.0)."
+                "vonage/client-core": "Required to use the default SMS adapter (^4.13.0)."
             },
             "default-branch": true,
             "bin": [
@@ -424,7 +424,7 @@
                 "issues": "https://github.com/valkyrjaio/valkyrja/issues",
                 "source": "https://github.com/valkyrjaio/valkyrja/tree/26.x"
             },
-            "time": "2026-04-17T01:08:42+00:00"
+            "time": "2026-04-17T10:04:23+00:00"
         }
     ],
     "packages-dev": [],
