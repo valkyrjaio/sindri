@@ -32,7 +32,7 @@ jobs:
       php-version: '8.4'
       dependencies: |
         [
-          {"name": "Root Packages",    "command": "root-outdated-check"},
+          {"name": "Root Packages",    "command": "install --ignore-platform-req=ext-openswoole && composer outdated --direct --minor-only"},
           {"name": "PHPArkitect",      "command": "phparkitect-outdated-check"},
           {"name": "PHP Code Sniffer", "command": "phpcodesniffer-outdated-check"},
           {"name": "PHP CS Fixer",     "command": "phpcsfixer-outdated-check"},
