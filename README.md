@@ -22,8 +22,8 @@ even faster.
     <a href="https://packagist.org/packages/valkyrja/sindri"><img src="https://poser.pugx.org/valkyrja/sindri/v" alt="Latest Stable Version"></a>
     <a href="https://packagist.org/packages/valkyrja/sindri"><img src="https://poser.pugx.org/valkyrja/sindri/license" alt="License"></a>
     <!-- <a href="https://packagist.org/packages/valkyrja/sindri"><img src="https://poser.pugx.org/valkyrja/sindri/downloads" alt="Total Downloads"></a>-->
-    <a href="https://scrutinizer-ci.com/g/valkyrjaio/sindri/?branch=master"><img src="https://scrutinizer-ci.com/g/valkyrjaio/sindri/badges/quality-score.png?b=master" alt="Scrutinizer"></a>
-    <a href="https://coveralls.io/github/valkyrjaio/sindri?branch=master"><img src="https://coveralls.io/repos/github/valkyrjaio/sindri/badge.svg?branch=master" alt="Coverage Status" /></a>
+    <a href="https://scrutinizer-ci.com/g/valkyrjaio/sindri/?branch=26.x"><img src="https://scrutinizer-ci.com/g/valkyrjaio/sindri/badges/quality-score.png?b=26.x" alt="Scrutinizer"></a>
+    <a href="https://coveralls.io/github/valkyrjaio/sindri?branch=26.x"><img src="https://coveralls.io/repos/github/valkyrjaio/sindri/badge.svg?branch=26.x" alt="Coverage Status" /></a>
     <a href="https://shepherd.dev/github/valkyrjaio/sindri"><img src="https://shepherd.dev/github/valkyrjaio/sindri/coverage.svg" alt="Psalm Shepherd" /></a>
     <a href="https://sonarcloud.io/summary/new_code?id=valkyrjaio_sindri"><img src="https://sonarcloud.io/api/project_badges/measure?project=valkyrjaio_sindri&metric=sqale_rating" alt="Maintainability Rating" /></a>
 </p>
@@ -36,34 +36,34 @@ Build Status
         <tr>
             <td>Linting</td>
             <td>
-                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/phpcodesniffer.yml?query=branch%3Amaster"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/phpcodesniffer.yml/badge.svg?branch=master" alt="PHP Code Sniffer Build Status"></a>
+                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/phpcodesniffer.yml?query=branch%3A26.x"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/phpcodesniffer.yml/badge.svg?branch=26.x" alt="PHP Code Sniffer Build Status"></a>
             </td>
             <td>
-                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/phpcsfixer.yml?query=branch%3Amaster"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/phpcsfixer.yml/badge.svg?branch=master" alt="PHP CS Fixer Build Status"></a>
+                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/phpcsfixer.yml?query=branch%3A26.x"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/phpcsfixer.yml/badge.svg?branch=26.x" alt="PHP CS Fixer Build Status"></a>
             </td>
         </tr>
         <tr>
             <td>Coding Rules</td>
             <td>
-                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/phparkitect.yml?query=branch%3Amaster"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/phparkitect.yml/badge.svg?branch=master" alt="PHPArkitect Build Status"></a>
+                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/phparkitect.yml?query=branch%3A26.x"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/phparkitect.yml/badge.svg?branch=26.x" alt="PHPArkitect Build Status"></a>
             </td>
             <td>
-                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/rector.yml?query=branch%3Amaster"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/rector.yml/badge.svg?branch=master" alt="Rector Build Status"></a>
+                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/rector.yml?query=branch%3A26.x"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/rector.yml/badge.svg?branch=26.x" alt="Rector Build Status"></a>
             </td>
         </tr>
         <tr>
             <td>Static Analysis</td>
             <td>
-                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/phpstan.yml?query=branch%3Amaster"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/phpstan.yml/badge.svg?branch=master" alt="PHPStan Build Status"></a>
+                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/phpstan.yml?query=branch%3A26.x"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/phpstan.yml/badge.svg?branch=26.x" alt="PHPStan Build Status"></a>
             </td>
             <td>
-                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/psalm.yml?query=branch%3Amaster"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/psalm.yml/badge.svg?branch=master" alt="Psalm Build Status"></a>
+                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/psalm.yml?query=branch%3A26.x"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/psalm.yml/badge.svg?branch=26.x" alt="Psalm Build Status"></a>
             </td>
         </tr>
         <tr>
             <td>Testing</td>
             <td>
-                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/phpunit.yml?query=branch%3Amaster"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/phpunit.yml/badge.svg?branch=master" alt="PHPUnit Build Status"></a>
+                <a href="https://github.com/valkyrjaio/sindri/actions/workflows/phpunit.yml?query=branch%3A26.x"><img src="https://github.com/valkyrjaio/sindri/actions/workflows/phpunit.yml/badge.svg?branch=26.x" alt="PHPUnit Build Status"></a>
             </td>
             <td></td>
         </tr>
