@@ -12,7 +12,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-use Sindri\Provider\ComponentProvider;
+use Sindri\Provider\SindriComponentProvider;
 use Valkyrja\Application\Data\CliConfig;
 use Valkyrja\Application\Entry\Cli;
 use Valkyrja\Application\Provider\CliApplicationComponentProvider;
@@ -63,7 +63,7 @@ $config = new CliConfig(
     dir: $dir,
     providers: [
         CliApplicationComponentProvider::class,
-        ComponentProvider::class,
+        SindriComponentProvider::class,
     ],
 );
 
