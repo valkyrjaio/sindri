@@ -11,8 +11,11 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-use Valkyrja\Application\Directory\Directory;
+namespace Sindri\Generator\Enum;
 
-require __DIR__ . '/../vendor/autoload.php';
-
-Directory::$basePath = __DIR__;
+enum GenerateStatus
+{
+    case SUCCESS;
+    case FAILURE;
+    case SKIPPED;
+}

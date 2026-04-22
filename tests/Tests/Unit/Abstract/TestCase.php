@@ -11,8 +11,13 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-use Valkyrja\Application\Directory\Directory;
+namespace Sindri\Tests\Unit\Abstract;
 
-require __DIR__ . '/../vendor/autoload.php';
+use Sindri\Tests\Abstract\SindriTestCase;
 
-Directory::$basePath = __DIR__;
+/**
+ * Test case for unit tests.
+ */
+abstract class TestCase extends SindriTestCase
+{
+}

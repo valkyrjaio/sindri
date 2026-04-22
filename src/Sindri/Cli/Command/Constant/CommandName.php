@@ -11,8 +11,10 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-use Valkyrja\Application\Directory\Directory;
+namespace Sindri\Cli\Command\Constant;
 
-require __DIR__ . '/../vendor/autoload.php';
-
-Directory::$basePath = __DIR__;
+final class CommandName
+{
+    /** @var non-empty-string */
+    public const string HTTP_DATA_GENERATE = 'http:data:generate';
+}
