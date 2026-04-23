@@ -18,14 +18,15 @@ use RuntimeException;
 use Sindri\Generator\Abstract\FileGenerator;
 use Sindri\Generator\Enum\GenerateStatus;
 use Sindri\Tests\Unit\Abstract\TestCase;
-use Valkyrja\Application\Directory\Directory;
 
 final class FileGeneratorTest extends TestCase
 {
     public function testGenerateFile(): void
     {
-        $filePath  = Directory::storagePath('FileGeneratorTest.testGenerateFile.php');
-        $generator = new class($filePath) extends FileGenerator {
+        $directory = sys_get_temp_dir();
+        $className = 'FileGeneratorTest.testGenerateFile';
+        $filePath  = $directory . '/' . $className . '.php';
+        $generator = new class($directory, $className) extends FileGenerator {
             #[Override]
             public function generateFileContents(): string
             {
@@ -46,7 +47,7 @@ final class FileGeneratorTest extends TestCase
 
     public function testGenerateFileFailure(): void
     {
-        $generator = new class('filepath.php') extends FileGenerator {
+        $generator = new class('/tmp', 'filepath') extends FileGenerator {
             #[Override]
             protected function filePutContents(string $data): int|false
             {
@@ -66,7 +67,7 @@ final class FileGeneratorTest extends TestCase
 
     public function testGenerateFileFailureDueToException(): void
     {
-        $generator = new class('filepath.php') extends FileGenerator {
+        $generator = new class('/tmp', 'filepath') extends FileGenerator {
             #[Override]
             protected function filePutContents(string $data): int|false
             {

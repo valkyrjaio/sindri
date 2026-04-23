@@ -97,20 +97,4 @@ abstract class FileGenerator implements FileGeneratorContract
         return file_put_contents(filename: $this->filePath, data: $data);
     }
 
-    /**
-     * Generate the contents of an object or array of objects.
-     *
-     * @param object|array<object> $subject The object or array of objects
-     *
-     * @return non-empty-string
-     */
-    protected function generateObjectsContents(object|array $subject): string
-    {
-        $contents = var_export($subject, true);
-        $contents = preg_replace('/([.^\S]*)::__set_state\(/', 'new $1(...', $contents);
-
-        /** @var non-empty-string $contents */
-
-        return $contents;
-    }
 }
