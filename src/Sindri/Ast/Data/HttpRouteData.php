@@ -30,19 +30,19 @@ use Sindri\Ast\Data\Contract\HttpRouteDataContract;
 readonly class HttpRouteData implements HttpRouteDataContract
 {
     /**
-     * @param string                   $path                      Route path
-     * @param string                   $name                      Route name
-     * @param HandlerData|null         $handler                   Resolved handler (from #[RouteHandler])
-     * @param string[]                 $requestMethods            "FQN::CASE" strings for RequestMethod enum values
-     * @param class-string[]           $routeMatchedMiddleware
-     * @param class-string[]           $routeDispatchedMiddleware
-     * @param class-string[]           $throwableCaughtMiddleware
-     * @param class-string[]           $sendingResponseMiddleware
-     * @param class-string[]           $terminatedMiddleware
-     * @param class-string|null        $requestStruct             FQN of the request struct class, or null
-     * @param class-string|null        $responseStruct            FQN of the response struct class, or null
-     * @param bool                     $isDynamic                 Whether this is a dynamic (parameterized) route
-     * @param HttpParameterData[]      $parameters                URL parameters (populated when isDynamic is true)
+     * @param string              $path                      Route path
+     * @param string              $name                      Route name
+     * @param HandlerData|null    $handler                   Resolved handler (from #[RouteHandler])
+     * @param string[]            $requestMethods            "FQN::CASE" strings for RequestMethod enum values
+     * @param class-string[]      $routeMatchedMiddleware
+     * @param class-string[]      $routeDispatchedMiddleware
+     * @param class-string[]      $throwableCaughtMiddleware
+     * @param class-string[]      $sendingResponseMiddleware
+     * @param class-string[]      $terminatedMiddleware
+     * @param class-string|null   $requestStruct             FQN of the request struct class, or null
+     * @param class-string|null   $responseStruct            FQN of the response struct class, or null
+     * @param bool                $isDynamic                 Whether this is a dynamic (parameterized) route
+     * @param HttpParameterData[] $parameters                URL parameters (populated when isDynamic is true)
      */
     public function __construct(
         public string $path,

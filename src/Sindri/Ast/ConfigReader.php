@@ -20,12 +20,15 @@ use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
-use PhpParser\Node\Scalar\MagicConst\Dir as MagicDir;
+use PhpParser\Node\Scalar\MagicConst\Dir;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use Sindri\Ast\Abstract\AstReader;
 use Sindri\Ast\Result\ConfigResult;
+
+use function count;
+use function dirname;
 
 /**
  * Reads an application config class file via AST and extracts the values
@@ -96,13 +99,13 @@ class ConfigReader extends AstReader
     protected function findParentConstructArgs(ClassMethod $method): array|null
     {
         foreach ($method->stmts ?? [] as $stmt) {
-            if (! ($stmt instanceof Expression)) {
+            if (! $stmt instanceof Expression) {
                 continue;
             }
 
             $expr = $stmt->expr;
 
-            if (! ($expr instanceof StaticCall)) {
+            if (! $expr instanceof StaticCall) {
                 continue;
             }
 
@@ -172,7 +175,7 @@ class ConfigReader extends AstReader
             return $expr->value;
         }
 
-        if ($expr instanceof MagicDir) {
+        if ($expr instanceof Dir) {
             return $fileDir;
         }
 
@@ -221,7 +224,7 @@ class ConfigReader extends AstReader
     {
         $node = $this->findNamedArgValue($args, $name);
 
-        if (! ($node instanceof Array_)) {
+        if (! $node instanceof Array_) {
             return [];
         }
 

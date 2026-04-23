@@ -24,15 +24,15 @@ use Sindri\Ast\Data\Contract\CliOptionParameterDataContract;
 readonly class CliOptionParameterData implements CliOptionParameterDataContract
 {
     /**
-     * @param string   $name             Option name
-     * @param string   $description      Option description
-     * @param string   $valueDisplayName Display name shown in help text
-     * @param string|null $cast          "FQN::CASE" of the Cast value, or null
-     * @param string   $defaultValue     Default value string
-     * @param string[] $shortNames       Short name aliases
-     * @param string[] $validValues      Allowed values
-     * @param string   $mode             "FQN::CASE" of the OptionMode enum value
-     * @param string   $valueMode        "FQN::CASE" of the OptionValueMode enum value
+     * @param string      $name             Option name
+     * @param string      $description      Option description
+     * @param string      $valueDisplayName Display name shown in help text
+     * @param string|null $cast             "FQN::CASE" of the Cast value, or null
+     * @param string      $defaultValue     Default value string
+     * @param string[]    $shortNames       Short name aliases
+     * @param string[]    $validValues      Allowed values
+     * @param string      $mode             "FQN::CASE" of the OptionMode enum value
+     * @param string      $valueMode        "FQN::CASE" of the OptionValueMode enum value
      */
     public function __construct(
         public string $name,

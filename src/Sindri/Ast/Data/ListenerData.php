@@ -25,8 +25,8 @@ use Sindri\Ast\Data\Contract\ListenerDataContract;
 readonly class ListenerData implements ListenerDataContract
 {
     /**
-     * @param class-string  $eventId The event class FQN this listener handles
-     * @param string        $name    Unique listener name
+     * @param class-string     $eventId The event class FQN this listener handles
+     * @param string           $name    Unique listener name
      * @param HandlerData|null $handler The callable handler, null if not resolved from attributes
      */
     public function __construct(

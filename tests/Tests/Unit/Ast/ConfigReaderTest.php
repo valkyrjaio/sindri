@@ -17,14 +17,14 @@ use Sindri\Ast\ConfigReader;
 use Sindri\Tests\Classes\Config\Provider\TestComponentProviderClass;
 use Sindri\Tests\Unit\Abstract\TestCase;
 
+use function dirname;
+
 final class ConfigReaderTest extends TestCase
 {
     private static string $fixtureFile;
 
     public static function setUpBeforeClass(): void
     {
-        parent::setUpBeforeClass();
-
         /** @var non-empty-string $path */
         $path = realpath(__DIR__ . '/../../Classes/Config/TestConfigClass.php');
 
@@ -33,7 +33,7 @@ final class ConfigReaderTest extends TestCase
 
     public function testReadFileExtractsNamespace(): void
     {
-        $result = (new ConfigReader())->readFile(self::$fixtureFile);
+        $result = new ConfigReader()->readFile(self::$fixtureFile);
 
         self::assertSame('Sindri\\Tests\\Classes', $result->namespace);
     }
@@ -51,7 +51,7 @@ final class ConfigReaderTest extends TestCase
         $fixtureDir     = dirname(self::$fixtureFile);  // .../Classes/Config
         $expectedSrcDir = dirname($fixtureDir);           // .../Classes
 
-        $result = (new ConfigReader())->readFile(self::$fixtureFile);
+        $result = new ConfigReader()->readFile(self::$fixtureFile);
 
         self::assertSame($expectedSrcDir, $result->dir);
     }
@@ -62,24 +62,24 @@ final class ConfigReaderTest extends TestCase
         // App root = __DIR__ . '/../..' = .../Tests
         // Absolute dataPath = .../Tests/Classes/Config/Data
         $fixtureDir       = dirname(self::$fixtureFile);  // .../Classes/Config
-        $appRoot          = dirname(dirname($fixtureDir)); // .../Tests (2 levels up)
+        $appRoot          = dirname($fixtureDir, 2); // .../Tests (2 levels up)
         $expectedDataPath = $appRoot . '/Classes/Config/Data';
 
-        $result = (new ConfigReader())->readFile(self::$fixtureFile);
+        $result = new ConfigReader()->readFile(self::$fixtureFile);
 
         self::assertSame($expectedDataPath, $result->dataPath);
     }
 
     public function testReadFileExtractsDataNamespace(): void
     {
-        $result = (new ConfigReader())->readFile(self::$fixtureFile);
+        $result = new ConfigReader()->readFile(self::$fixtureFile);
 
         self::assertSame('Sindri\\Tests\\Classes\\Config\\Data', $result->dataNamespace);
     }
 
     public function testReadFileExtractsProviders(): void
     {
-        $result = (new ConfigReader())->readFile(self::$fixtureFile);
+        $result = new ConfigReader()->readFile(self::$fixtureFile);
 
         self::assertSame([TestComponentProviderClass::class], $result->providers);
     }

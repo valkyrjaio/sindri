@@ -13,11 +13,12 @@ declare(strict_types=1);
 
 namespace Sindri\Ast;
 
+use PhpParser\Node\Arg;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ConstFetch;
-use PhpParser\Node\Name as PhpParserName;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\ClassMethod;
 use Sindri\Ast\Abstract\AstReader;
 use Sindri\Ast\Contract\CliRouteAttributeReaderContract;
@@ -45,6 +46,7 @@ use Valkyrja\Cli\Routing\Enum\OptionMode;
 use Valkyrja\Cli\Routing\Enum\OptionValueMode;
 
 use function is_a;
+use function is_string;
 
 /**
  * Scans a CLI controller class file for #[Route] and related sub-attributes and
@@ -90,7 +92,7 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
     /**
      * Collect all attribute arguments for a #[Route] and its companions into a CliRouteData.
      *
-     * @param \PhpParser\Node\Arg[] $args
+     * @param Arg[]                 $args
      * @param array<string, string> $useMap
      */
     protected function buildRouteData(
@@ -283,7 +285,7 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
     /**
      * Build a CliArgumentParameterData from a #[ArgumentParameter] attribute.
      *
-     * @param \PhpParser\Node\Arg[] $args
+     * @param Arg[]                 $args
      * @param array<string, string> $useMap
      */
     protected function buildArgumentData(
@@ -341,7 +343,7 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
     /**
      * Build a CliOptionParameterData from a #[OptionParameter] attribute.
      *
-     * @param \PhpParser\Node\Arg[] $args
+     * @param Arg[]                 $args
      * @param array<string, string> $useMap
      */
     protected function buildOptionData(
@@ -366,7 +368,7 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
         $modeRaw         = $this->extractExprValue($this->getAttrArg($args, 'mode', 7), $useMap, $namespace, $currentClass);
         $valueModeRaw    = $this->extractExprValue($this->getAttrArg($args, 'valueMode', 8), $useMap, $namespace, $currentClass);
 
-        $shortNames  = $shortNamesExpr instanceof Array_  ? $this->extractStringListFromArrayExpr($shortNamesExpr, $useMap, $namespace, $currentClass)  : [];
+        $shortNames  = $shortNamesExpr instanceof Array_ ? $this->extractStringListFromArrayExpr($shortNamesExpr, $useMap, $namespace, $currentClass) : [];
         $validValues = $validValuesExpr instanceof Array_ ? $this->extractStringListFromArrayExpr($validValuesExpr, $useMap, $namespace, $currentClass) : [];
 
         return new CliOptionParameterData(
@@ -453,7 +455,7 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
             $this->buildNamedArg('description', $this->buildStringExpr($data->description)),
             $this->buildNamedArg(
                 'cast',
-                $data->cast !== null ? $this->buildEnumCaseExpr($data->cast) : new ConstFetch(new PhpParserName('null'))
+                $data->cast !== null ? $this->buildEnumCaseExpr($data->cast) : new ConstFetch(new Name('null'))
             ),
             $this->buildNamedArg('mode', $this->buildEnumCaseExpr($data->mode)),
             $this->buildNamedArg('valueMode', $this->buildEnumCaseExpr($data->valueMode)),
@@ -489,7 +491,7 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
             $this->buildNamedArg('valueDisplayName', $this->buildStringExpr($data->valueDisplayName)),
             $this->buildNamedArg(
                 'cast',
-                $data->cast !== null ? $this->buildEnumCaseExpr($data->cast) : new ConstFetch(new PhpParserName('null'))
+                $data->cast !== null ? $this->buildEnumCaseExpr($data->cast) : new ConstFetch(new Name('null'))
             ),
             $this->buildNamedArg('defaultValue', $this->buildStringExpr($data->defaultValue)),
         ];
@@ -537,5 +539,4 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
 
         return $values;
     }
-
 }

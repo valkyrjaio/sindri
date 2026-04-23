@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sindri\Ast;
 
+use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Name;
@@ -26,6 +27,8 @@ use Sindri\Ast\Result\ListenerAttributeResult;
 use Valkyrja\Event\Attribute\Listener;
 use Valkyrja\Event\Attribute\ListenerHandler;
 use Valkyrja\Event\Data\Listener as ListenerModel;
+
+use function is_string;
 
 /**
  * Scans a listener class file for #[Listener] and #[ListenerHandler] attributes
@@ -81,7 +84,7 @@ class ListenerAttributeReader extends AstReader implements ListenerAttributeRead
     /**
      * Collect all attribute arguments for a #[Listener] into a ListenerData.
      *
-     * @param \PhpParser\Node\Arg[] $args
+     * @param Arg[]                 $args
      * @param array<string, string> $useMap
      */
     protected function buildListenerData(

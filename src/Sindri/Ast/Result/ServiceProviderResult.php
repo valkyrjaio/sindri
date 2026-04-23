@@ -22,8 +22,8 @@ namespace Sindri\Ast\Result;
 readonly class ServiceProviderResult
 {
     /**
-     * @param class-string[]                                              $serviceClasses
-     * @param array<class-string, array{0: class-string, 1: string}>     $publishers
+     * @param class-string[]                                         $serviceClasses
+     * @param array<class-string, array{0: class-string, 1: string}> $publishers
      */
     public function __construct(
         public array $serviceClasses = [],

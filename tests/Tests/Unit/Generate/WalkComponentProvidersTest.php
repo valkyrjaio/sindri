@@ -21,7 +21,6 @@ use Sindri\Tests\Classes\Provider\Sub\TestServiceProviderClass;
 use Sindri\Tests\Classes\Provider\TestFirstComponentProviderClass;
 use Sindri\Tests\Classes\Provider\TestSecondComponentProviderClass;
 use Sindri\Tests\Unit\Abstract\TestCase;
-use Valkyrja\Cli\Interaction\Output\Contract\OutputContract;
 use Valkyrja\Cli\Interaction\Output\Factory\Contract\OutputFactoryContract;
 
 final class WalkComponentProvidersTest extends TestCase
@@ -30,8 +29,6 @@ final class WalkComponentProvidersTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        parent::setUpBeforeClass();
-
         /** @var non-empty-string $path */
         $path = realpath(__DIR__ . '/../../Classes/Provider');
 

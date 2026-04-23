@@ -13,11 +13,14 @@ declare(strict_types=1);
 
 namespace Sindri\Ast;
 
+use PhpParser\Node\Arg;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ConstFetch;
-use PhpParser\Node\Name as PhpParserName;
+use PhpParser\Node\Expr\New_;
+use PhpParser\Node\Name;
+use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use Sindri\Ast\Abstract\AstReader;
 use Sindri\Ast\Contract\HttpRouteAttributeReaderContract;
@@ -36,7 +39,7 @@ use Valkyrja\Http\Routing\Attribute\Parameter;
 use Valkyrja\Http\Routing\Attribute\Route;
 use Valkyrja\Http\Routing\Attribute\Route\Middleware;
 use Valkyrja\Http\Routing\Attribute\Route\Name as RouteName;
-use Valkyrja\Http\Routing\Attribute\Route\Path as RoutePath;
+use Valkyrja\Http\Routing\Attribute\Route\Path;
 use Valkyrja\Http\Routing\Attribute\Route\RequestMethod;
 use Valkyrja\Http\Routing\Attribute\Route\RequestStruct;
 use Valkyrja\Http\Routing\Attribute\Route\ResponseStruct;
@@ -46,6 +49,8 @@ use Valkyrja\Http\Routing\Data\Parameter as ParameterModel;
 use Valkyrja\Http\Routing\Data\Route as RouteModel;
 
 use function is_a;
+use function is_bool;
+use function is_string;
 
 /**
  * Scans an HTTP controller class file for #[Route] / #[DynamicRoute] and related
@@ -106,16 +111,15 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
     /**
      * Extract a class-level #[Route\Path] prefix, if any.
      *
-     * @param \PhpParser\Node\Stmt\Class_ $class
-     * @param array<string, string>       $useMap
+     * @param array<string, string> $useMap
      */
     protected function extractClassPathPrefix(
-        \PhpParser\Node\Stmt\Class_ $class,
+        Class_ $class,
         array $useMap,
         string $namespace,
         string $currentClass,
     ): string {
-        foreach ($this->findAttributesOnNode($class, RoutePath::class, $useMap, $namespace) as $attr) {
+        foreach ($this->findAttributesOnNode($class, Path::class, $useMap, $namespace) as $attr) {
             $value = $this->extractExprValue($this->getAttrArg($attr->args, 'value', 0), $useMap, $namespace, $currentClass);
 
             if (is_string($value) && $value !== '') {
@@ -129,11 +133,10 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
     /**
      * Extract a class-level #[Route\Name] prefix, if any.
      *
-     * @param \PhpParser\Node\Stmt\Class_ $class
-     * @param array<string, string>       $useMap
+     * @param array<string, string> $useMap
      */
     protected function extractClassNamePrefix(
-        \PhpParser\Node\Stmt\Class_ $class,
+        Class_ $class,
         array $useMap,
         string $namespace,
         string $currentClass,
@@ -152,7 +155,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
     /**
      * Collect all attribute arguments for a #[Route] / #[DynamicRoute] into an HttpRouteData.
      *
-     * @param \PhpParser\Node\Arg[] $args
+     * @param Arg[]                 $args
      * @param array<string, string> $useMap
      */
     protected function buildRouteData(
@@ -269,7 +272,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
             $path = rtrim($classPathPrefix, '/') . '/' . ltrim($path, '/');
         }
 
-        foreach ($this->findAttributesOnNode($method, RoutePath::class, $useMap, $namespace) as $attr) {
+        foreach ($this->findAttributesOnNode($method, Path::class, $useMap, $namespace) as $attr) {
             $suffix = $this->extractExprValue($this->getAttrArg($attr->args, 'value', 0), $useMap, $namespace, $currentClass);
 
             if (is_string($suffix) && $suffix !== '') {
@@ -333,7 +336,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
     /**
      * Extract the inline requestMethods array from a #[Route] attribute (positional arg 3).
      *
-     * @param \PhpParser\Node\Arg[] $args
+     * @param Arg[]                 $args
      * @param array<string, string> $useMap
      *
      * @return string[]
@@ -342,7 +345,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
     {
         $requestMethodsExpr = $this->getAttrArg($args, 'requestMethods', 3);
 
-        if (! ($requestMethodsExpr instanceof Array_)) {
+        if (! $requestMethodsExpr instanceof Array_) {
             return [];
         }
 
@@ -497,7 +500,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
     /**
      * Collect parameters from inline DynamicRoute args and #[Parameter] attributes.
      *
-     * @param \PhpParser\Node\Arg[] $args
+     * @param Arg[]                 $args
      * @param array<string, string> $useMap
      *
      * @return HttpParameterData[]
@@ -562,7 +565,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
         string $namespace,
         string $currentClass,
     ): HttpParameterData|null {
-        if (! ($expr instanceof \PhpParser\Node\Expr\New_)) {
+        if (! $expr instanceof New_) {
             return null;
         }
 
@@ -572,7 +575,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
     /**
      * Build an HttpParameterData from a #[Parameter] attribute argument list.
      *
-     * @param \PhpParser\Node\Arg[] $args
+     * @param Arg[]                 $args
      * @param array<string, string> $useMap
      */
     protected function buildParameterData(
@@ -691,7 +694,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
         if ($data->cast !== null) {
             $args[] = $this->buildNamedArg('cast', $this->buildEnumCaseExpr($data->cast));
         } else {
-            $args[] = $this->buildNamedArg('cast', new ConstFetch(new PhpParserName('null')));
+            $args[] = $this->buildNamedArg('cast', new ConstFetch(new Name('null')));
         }
 
         $args[] = $this->buildNamedArg('isOptional', $this->buildBoolExpr($data->isOptional));
@@ -699,5 +702,4 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
 
         return $this->buildNewExpr(ParameterModel::class, $args);
     }
-
 }

@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Sindri\Tests\Classes\Provider;
 
 use Override;
-use Sindri\Tests\Classes\Provider\Sub\TestSubComponentProviderClass;
 use Sindri\Tests\Classes\Provider\Sub\TestServiceProviderClass;
+use Sindri\Tests\Classes\Provider\Sub\TestSubComponentProviderClass;
 use Valkyrja\Application\Kernel\Contract\ApplicationContract;
 use Valkyrja\Application\Provider\Contract\ComponentProviderContract;
 

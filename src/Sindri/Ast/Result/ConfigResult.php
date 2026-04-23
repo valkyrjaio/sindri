@@ -19,11 +19,11 @@ namespace Sindri\Ast\Result;
 readonly class ConfigResult
 {
     /**
-     * @param non-empty-string   $namespace
-     * @param non-empty-string   $dir
-     * @param non-empty-string   $dataPath
-     * @param non-empty-string   $dataNamespace
-     * @param class-string[]     $providers
+     * @param non-empty-string $namespace
+     * @param non-empty-string $dir
+     * @param non-empty-string $dataPath
+     * @param non-empty-string $dataNamespace
+     * @param class-string[]   $providers
      */
     public function __construct(
         public string $namespace = '',

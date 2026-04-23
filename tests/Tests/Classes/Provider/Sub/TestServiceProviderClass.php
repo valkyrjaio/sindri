@@ -23,8 +23,8 @@ final class TestServiceProviderClass implements ServiceProviderContract
     public static function publishers(): array
     {
         return [
-            TestServiceClass::class        => [self::class, 'publishTestService'],
-            TestOtherServiceClass::class   => [TestOtherServiceProviderClass::class, 'publishTestOtherService'],
+            TestServiceClass::class      => [self::class, 'publishTestService'],
+            TestOtherServiceClass::class => [TestOtherServiceProviderClass::class, 'publishTestOtherService'],
         ];
     }
 

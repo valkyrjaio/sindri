@@ -33,7 +33,7 @@ readonly class RouteProviderResult
 {
     /**
      * @param class-string[] $controllerClasses
-     * @param Expr[]         $routes             Raw AST expressions from getRoutes()
+     * @param Expr[]         $routes            Raw AST expressions from getRoutes()
      */
     public function __construct(
         public array $controllerClasses = [],

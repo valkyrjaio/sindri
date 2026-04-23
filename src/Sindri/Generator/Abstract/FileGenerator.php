@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Valkyrja Framework package.
+ * This file is part of the Sindri package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -96,5 +96,4 @@ abstract class FileGenerator implements FileGeneratorContract
     {
         return file_put_contents(filename: $this->filePath, data: $data);
     }
-
 }

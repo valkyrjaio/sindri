@@ -26,8 +26,6 @@ final class ServiceProviderReaderTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        parent::setUpBeforeClass();
-
         /** @var non-empty-string $path */
         $path = realpath(__DIR__ . '/../../Classes/Provider/Sub/TestServiceProviderClass.php');
 
@@ -36,7 +34,7 @@ final class ServiceProviderReaderTest extends TestCase
 
     public function testReadFileExtractsServiceClasses(): void
     {
-        $result = (new ServiceProviderReader())->readFile(self::$fixtureFile);
+        $result = new ServiceProviderReader()->readFile(self::$fixtureFile);
 
         self::assertSame(
             [TestServiceClass::class, TestOtherServiceClass::class],
@@ -46,7 +44,7 @@ final class ServiceProviderReaderTest extends TestCase
 
     public function testReadFileExtractsSelfClassPublisher(): void
     {
-        $result = (new ServiceProviderReader())->readFile(self::$fixtureFile);
+        $result = new ServiceProviderReader()->readFile(self::$fixtureFile);
 
         self::assertSame(
             [TestServiceProviderClass::class, 'publishTestService'],
@@ -56,7 +54,7 @@ final class ServiceProviderReaderTest extends TestCase
 
     public function testReadFileExtractsExplicitClassPublisher(): void
     {
-        $result = (new ServiceProviderReader())->readFile(self::$fixtureFile);
+        $result = new ServiceProviderReader()->readFile(self::$fixtureFile);
 
         self::assertSame(
             [TestOtherServiceProviderClass::class, 'publishTestOtherService'],

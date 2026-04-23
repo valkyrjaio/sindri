@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Valkyrja Framework package.
+ * This file is part of the Sindri package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -34,6 +34,10 @@ use Valkyrja\Http\Routing\Data\Parameter;
 use Valkyrja\Http\Routing\Data\Route;
 use Valkyrja\Http\Routing\Processor\Contract\ProcessorContract;
 use Valkyrja\Http\Routing\Processor\Processor;
+
+use function constant;
+use function defined;
+use function is_string;
 
 /**
  * AST-based HTTP routing data file generator.
@@ -320,8 +324,8 @@ class AstHttpDataFileGenerator extends FileGenerator implements DataFileGenerato
             $data = $this->routeData[$key] ?? null;
 
             if ($data !== null && $data->isDynamic && $routeExpr instanceof New_) {
-                $computedRegex  = $data->parameters !== [] ? $this->computeRegex($data) : '';
-                $routeExpr      = clone $routeExpr;
+                $computedRegex     = $data->parameters !== [] ? $this->computeRegex($data) : '';
+                $routeExpr         = clone $routeExpr;
                 $routeExpr->args[] = new Arg(
                     value: new String_($computedRegex),
                     name: new Identifier('regex'),

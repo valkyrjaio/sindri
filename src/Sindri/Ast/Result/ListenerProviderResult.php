@@ -30,7 +30,7 @@ readonly class ListenerProviderResult
 {
     /**
      * @param class-string[] $listenerClasses
-     * @param Expr[]         $listeners        Raw AST expressions from getListeners()
+     * @param Expr[]         $listeners       Raw AST expressions from getListeners()
      */
     public function __construct(
         public array $listenerClasses = [],
