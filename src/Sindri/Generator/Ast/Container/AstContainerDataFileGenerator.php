@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -15,7 +15,7 @@ namespace Sindri\Generator\Ast\Container;
 
 use Override;
 use Sindri\Generator\Abstract\FileGenerator;
-use Sindri\Generator\Container\Contract\DataFileGeneratorContract;
+use Sindri\Generator\Container\Contract\ContainerDataFileGeneratorContract;
 use Valkyrja\Container\Data\ContainerData;
 
 /**
@@ -29,7 +29,7 @@ use Valkyrja\Container\Data\ContainerData;
  * because deferredCallback alone is sufficient for the container to resolve
  * deferred bindings, and the provider list is managed by the app config.
  */
-class AstContainerDataFileGenerator extends FileGenerator implements DataFileGeneratorContract
+class AstContainerDataFileGenerator extends FileGenerator implements ContainerDataFileGeneratorContract
 {
     /**
      * @param non-empty-string                                       $directory

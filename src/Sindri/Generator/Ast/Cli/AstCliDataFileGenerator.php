@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -18,7 +18,7 @@ use PhpParser\Node\Expr;
 use PhpParser\PrettyPrinter\Standard;
 use PhpParser\PrettyPrinterAbstract;
 use Sindri\Generator\Abstract\FileGenerator;
-use Sindri\Generator\Cli\Contract\DataFileGeneratorContract;
+use Sindri\Generator\Cli\Contract\CliDataFileGeneratorContract;
 use Valkyrja\Cli\Routing\Data\CliRoutingData;
 use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
 
@@ -28,7 +28,7 @@ use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
  * Accepts PHP-Parser Expr nodes produced by CliRouteAttributeReader and pretty-prints
  * them directly into the generated data class, bypassing any runtime app boot.
  */
-class AstCliDataFileGenerator extends FileGenerator implements DataFileGeneratorContract
+class AstCliDataFileGenerator extends FileGenerator implements CliDataFileGeneratorContract
 {
     /**
      * @param non-empty-string    $directory

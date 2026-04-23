@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -15,7 +15,7 @@ namespace Sindri\Generator\Container\Contract;
 
 use Sindri\Generator\Contract\FileGeneratorContract;
 
-interface DataFileGeneratorContract extends FileGeneratorContract
+interface ContainerDataFileGeneratorContract extends FileGeneratorContract
 {
     /**
      * Generate the data class contents.

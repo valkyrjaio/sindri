@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -26,7 +26,7 @@ use PhpParser\PrettyPrinterAbstract;
 use Sindri\Ast\Data\HttpParameterData;
 use Sindri\Ast\Data\HttpRouteData;
 use Sindri\Generator\Abstract\FileGenerator;
-use Sindri\Generator\Http\Contract\DataFileGeneratorContract;
+use Sindri\Generator\Http\Contract\HttpDataFileGeneratorContract;
 use Valkyrja\Http\Routing\Data\Contract\RouteContract;
 use Valkyrja\Http\Routing\Data\DynamicRoute;
 use Valkyrja\Http\Routing\Data\HttpRoutingData;
@@ -45,7 +45,7 @@ use function is_string;
  * Accepts PHP-Parser Expr nodes produced by HttpRouteAttributeReader and the
  * plain HttpRouteData objects used to derive paths, dynamicPaths, and regexes.
  */
-class AstHttpDataFileGenerator extends FileGenerator implements DataFileGeneratorContract
+class AstHttpDataFileGenerator extends FileGenerator implements HttpDataFileGeneratorContract
 {
     /**
      * @param non-empty-string             $directory
@@ -113,7 +113,7 @@ class AstHttpDataFileGenerator extends FileGenerator implements DataFileGenerato
     #[Override]
     public function generateClassContents(): string
     {
-        $dataNamespace = 'Sindri\Http\Data\HttpRoutingData';
+        $dataNamespace = HttpRoutingData::class;
         $routes        = $this->getRoutesAsContent();
 
         // phpcs:disable

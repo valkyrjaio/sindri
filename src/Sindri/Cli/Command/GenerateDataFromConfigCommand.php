@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -14,6 +14,22 @@ declare(strict_types=1);
 namespace Sindri\Cli\Command;
 
 use Override;
+use Sindri\Ast\CliRouteAttributeReader;
+use Sindri\Ast\ComponentProviderReader;
+use Sindri\Ast\ConfigReader;
+use Sindri\Ast\Contract\CliRouteAttributeReaderContract;
+use Sindri\Ast\Contract\ComponentProviderReaderContract;
+use Sindri\Ast\Contract\ConfigReaderContract;
+use Sindri\Ast\Contract\HttpRouteAttributeReaderContract;
+use Sindri\Ast\Contract\ListenerAttributeReaderContract;
+use Sindri\Ast\Contract\ListenerProviderReaderContract;
+use Sindri\Ast\Contract\RouteProviderReaderContract;
+use Sindri\Ast\Contract\ServiceProviderReaderContract;
+use Sindri\Ast\HttpRouteAttributeReader;
+use Sindri\Ast\ListenerAttributeReader;
+use Sindri\Ast\ListenerProviderReader;
+use Sindri\Ast\RouteProviderReader;
+use Sindri\Ast\ServiceProviderReader;
 use Sindri\Constant\CommandName;
 use Sindri\Generate\Abstract\GenerateDataFromAst;
 use Sindri\Provider\SindriCliRouteProvider;
@@ -32,10 +48,26 @@ class GenerateDataFromConfigCommand extends GenerateDataFromAst
     public function __construct(
         protected RouteContract $route,
         OutputFactoryContract $outputFactory,
+        ConfigReaderContract $configReader = new ConfigReader(),
+        ComponentProviderReaderContract $componentProviderReader = new ComponentProviderReader(),
+        RouteProviderReaderContract $routeProviderReader = new RouteProviderReader(),
+        ListenerProviderReaderContract $listenerProviderReader = new ListenerProviderReader(),
+        ServiceProviderReaderContract $serviceProviderReader = new ServiceProviderReader(),
+        CliRouteAttributeReaderContract $cliRouteAttributeReader = new CliRouteAttributeReader(),
+        HttpRouteAttributeReaderContract $httpRouteAttributeReader = new HttpRouteAttributeReader(),
+        ListenerAttributeReaderContract $listenerAttributeReader = new ListenerAttributeReader(),
     ) {
         parent::__construct(
             outputFactory: $outputFactory,
             title: 'Generating Cli Component Data',
+            configReader: $configReader,
+            componentProviderReader: $componentProviderReader,
+            routeProviderReader: $routeProviderReader,
+            listenerProviderReader: $listenerProviderReader,
+            serviceProviderReader: $serviceProviderReader,
+            cliRouteAttributeReader: $cliRouteAttributeReader,
+            httpRouteAttributeReader: $httpRouteAttributeReader,
+            listenerAttributeReader: $listenerAttributeReader,
         );
     }
 

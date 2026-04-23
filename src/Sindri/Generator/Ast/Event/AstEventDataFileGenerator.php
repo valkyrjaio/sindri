@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -18,7 +18,7 @@ use PhpParser\Node\Expr;
 use PhpParser\PrettyPrinter\Standard;
 use PhpParser\PrettyPrinterAbstract;
 use Sindri\Generator\Abstract\FileGenerator;
-use Sindri\Generator\Event\Contract\DataFileGeneratorContract;
+use Sindri\Generator\Event\Contract\HttpDataFileGeneratorContract;
 use Valkyrja\Event\Data\Contract\ListenerContract;
 use Valkyrja\Event\Data\EventData;
 
@@ -28,7 +28,7 @@ use Valkyrja\Event\Data\EventData;
  * Accepts PHP-Parser Expr nodes produced by ListenerAttributeReader and pretty-prints
  * them directly into the generated data class, bypassing any runtime app boot.
  */
-class AstEventDataFileGenerator extends FileGenerator implements DataFileGeneratorContract
+class AstEventDataFileGenerator extends FileGenerator implements HttpDataFileGeneratorContract
 {
     /**
      * @param non-empty-string    $directory

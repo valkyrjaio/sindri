@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -31,18 +31,6 @@ abstract class FileGenerator implements FileGeneratorContract
         protected string $className,
     ) {
         $this->filePath = rtrim($directory, '/') . "/$className.php";
-    }
-
-    /**
-     * Return a new instance with an updated class name and corresponding file path.
-     */
-    public function withClassName(string $className): static
-    {
-        $clone            = clone $this;
-        $clone->className = $className;
-        $clone->filePath  = rtrim($clone->directory, '/') . "/$className.php";
-
-        return $clone;
     }
 
     /**

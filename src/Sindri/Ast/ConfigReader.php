@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -25,6 +25,7 @@ use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use Sindri\Ast\Abstract\AstReader;
+use Sindri\Ast\Contract\ConfigReaderContract;
 use Sindri\Ast\Result\ConfigResult;
 
 use function count;
@@ -38,7 +39,7 @@ use function dirname;
  * named arguments (namespace, dir, dataPath, dataNamespace, providers).
  * __DIR__ in the dir argument is resolved relative to the config file path.
  */
-class ConfigReader extends AstReader
+class ConfigReader extends AstReader implements ConfigReaderContract
 {
     public function readFile(string $filePath): ConfigResult
     {

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -18,6 +18,14 @@ use ReflectionException;
 use Sindri\Ast\CliRouteAttributeReader;
 use Sindri\Ast\ComponentProviderReader;
 use Sindri\Ast\ConfigReader;
+use Sindri\Ast\Contract\CliRouteAttributeReaderContract;
+use Sindri\Ast\Contract\ComponentProviderReaderContract;
+use Sindri\Ast\Contract\ConfigReaderContract;
+use Sindri\Ast\Contract\HttpRouteAttributeReaderContract;
+use Sindri\Ast\Contract\ListenerAttributeReaderContract;
+use Sindri\Ast\Contract\ListenerProviderReaderContract;
+use Sindri\Ast\Contract\RouteProviderReaderContract;
+use Sindri\Ast\Contract\ServiceProviderReaderContract;
 use Sindri\Ast\HttpRouteAttributeReader;
 use Sindri\Ast\ListenerAttributeReader;
 use Sindri\Ast\ListenerProviderReader;
@@ -46,14 +54,14 @@ abstract class GenerateDataFromAst
     public function __construct(
         protected OutputFactoryContract $outputFactory,
         protected string $title = 'Generating Data',
-        protected ConfigReader $configReader = new ConfigReader(),
-        protected ComponentProviderReader $componentProviderReader = new ComponentProviderReader(),
-        protected RouteProviderReader $routeProviderReader = new RouteProviderReader(),
-        protected ListenerProviderReader $listenerProviderReader = new ListenerProviderReader(),
-        protected ServiceProviderReader $serviceProviderReader = new ServiceProviderReader(),
-        protected CliRouteAttributeReader $cliRouteAttributeReader = new CliRouteAttributeReader(),
-        protected HttpRouteAttributeReader $httpRouteAttributeReader = new HttpRouteAttributeReader(),
-        protected ListenerAttributeReader $listenerAttributeReader = new ListenerAttributeReader(),
+        protected ConfigReaderContract $configReader = new ConfigReader(),
+        protected ComponentProviderReaderContract $componentProviderReader = new ComponentProviderReader(),
+        protected RouteProviderReaderContract $routeProviderReader = new RouteProviderReader(),
+        protected ListenerProviderReaderContract $listenerProviderReader = new ListenerProviderReader(),
+        protected ServiceProviderReaderContract $serviceProviderReader = new ServiceProviderReader(),
+        protected CliRouteAttributeReaderContract $cliRouteAttributeReader = new CliRouteAttributeReader(),
+        protected HttpRouteAttributeReaderContract $httpRouteAttributeReader = new HttpRouteAttributeReader(),
+        protected ListenerAttributeReaderContract $listenerAttributeReader = new ListenerAttributeReader(),
     ) {
     }
 
