@@ -29,14 +29,14 @@ abstract class ProviderFileGenerator extends FileGenerator
      * @param non-empty-string $publishMethod        The service publish method
      */
     public function __construct(
-        protected string $directory,
+        string $directory,
         protected string $namespace,
-        protected string $className,
+        string $className,
         protected string $serviceClassName,
         protected string $serviceFullNamespace,
         protected string $publishMethod,
     ) {
-        parent::__construct(filePath: rtrim($directory, '/') . "/$className.php");
+        parent::__construct(directory: $directory, className: $className);
     }
 
     /**

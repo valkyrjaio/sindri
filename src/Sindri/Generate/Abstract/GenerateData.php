@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Sindri\Generate\Abstract;
 
-use Generator\Cli\Contract\DataFileGeneratorContract as CliDataFileGeneratorContract;
-use Generator\Http\Contract\DataFileGeneratorContract as HttpDataFileGeneratorContract;
+use Sindri\Generator\Cli\Contract\DataFileGeneratorContract as CliDataFileGeneratorContract;
 use Sindri\Generator\Enum\GenerateStatus;
+use Sindri\Generator\Http\Contract\DataFileGeneratorContract as HttpDataFileGeneratorContract;
 use Valkyrja\Application\Data\Contract\ConfigContract;
 use Valkyrja\Application\Entry\Http;
 use Valkyrja\Application\Env\Env;

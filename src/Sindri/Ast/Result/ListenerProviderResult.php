@@ -13,25 +13,24 @@ declare(strict_types=1);
 
 namespace Sindri\Ast\Result;
 
-use Valkyrja\Event\Data\Contract\ListenerContract;
+use PhpParser\Node\Expr;
 
 /**
  * Listeners extracted from a single ListenerProviderContract implementation.
  *
  * `listenerClasses` — classes listed by getListenerClasses() that carry #[Listener]
- *                     attributes; a subsequent AttributeListenerReader will scan each
- *                     class and produce the full ListenerContract objects.
+ *                     attributes; a subsequent ListenerAttributeReader will scan each
+ *                     class and produce the full listener data objects.
  *
- * `listeners`       — ListenerContract objects returned directly by getListeners();
- *                     the exact user-defined shapes are preserved as-is.
- *                     (Populated once AST parsing of getListeners() new-expressions
- *                     is implemented.)
+ * `listeners`       — raw AST Expr nodes captured verbatim from getListeners();
+ *                     the file generator writes them back out as-is so the exact
+ *                     user-defined shape is preserved without re-interpretation.
  */
 readonly class ListenerProviderResult
 {
     /**
-     * @param class-string[]    $listenerClasses
-     * @param ListenerContract[] $listeners
+     * @param class-string[] $listenerClasses
+     * @param Expr[]         $listeners        Raw AST expressions from getListeners()
      */
     public function __construct(
         public array $listenerClasses = [],

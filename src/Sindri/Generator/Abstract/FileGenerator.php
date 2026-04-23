@@ -20,12 +20,29 @@ use Throwable;
 
 abstract class FileGenerator implements FileGeneratorContract
 {
+    protected string $filePath;
+
     /**
-     * @param non-empty-string $filePath The file path
+     * @param non-empty-string $directory The directory
+     * @param non-empty-string $className The class name
      */
     public function __construct(
-        protected string $filePath
+        protected string $directory,
+        protected string $className,
     ) {
+        $this->filePath = rtrim($directory, '/') . "/$className.php";
+    }
+
+    /**
+     * Return a new instance with an updated class name and corresponding file path.
+     */
+    public function withClassName(string $className): static
+    {
+        $clone            = clone $this;
+        $clone->className = $className;
+        $clone->filePath  = rtrim($clone->directory, '/') . "/$className.php";
+
+        return $clone;
     }
 
     /**

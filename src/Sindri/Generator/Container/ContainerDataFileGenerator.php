@@ -18,7 +18,7 @@ use Sindri\Generator\Abstract\FileGenerator;
 use Sindri\Generator\Container\Contract\DataFileGeneratorContract;
 use Valkyrja\Container\Data\ContainerData;
 
-class DataFileGenerator extends FileGenerator implements DataFileGeneratorContract
+class ContainerDataFileGenerator extends FileGenerator implements DataFileGeneratorContract
 {
     /**
      * @param non-empty-string $directory The directory
@@ -26,12 +26,12 @@ class DataFileGenerator extends FileGenerator implements DataFileGeneratorContra
      * @param non-empty-string $className The class name
      */
     public function __construct(
-        protected string $directory,
+        string $directory,
         protected ContainerData $data,
         protected string $namespace,
-        protected string $className,
+        string $className,
     ) {
-        parent::__construct(filePath: rtrim($directory, '/') . "/$className.php");
+        parent::__construct(directory: $directory, className: $className);
     }
 
     /**

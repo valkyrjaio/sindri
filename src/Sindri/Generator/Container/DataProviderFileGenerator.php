@@ -25,9 +25,9 @@ class DataProviderFileGenerator extends ProviderFileGenerator
      * @param non-empty-string $className The class name
      */
     public function __construct(
-        protected string $directory,
-        protected string $namespace,
-        protected string $className,
+        string $directory,
+        string $namespace,
+        string $className,
         protected string $dataClassNamespace,
         protected string $dataClassName,
     ) {

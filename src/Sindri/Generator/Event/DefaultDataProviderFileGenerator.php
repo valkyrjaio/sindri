@@ -26,9 +26,9 @@ class DefaultDataProviderFileGenerator extends ProviderFileGenerator
      * @param non-empty-string $className The class name
      */
     public function __construct(
-        protected string $directory,
-        protected string $namespace,
-        protected string $className,
+        string $directory,
+        string $namespace,
+        string $className,
     ) {
         parent::__construct(
             directory: $directory,

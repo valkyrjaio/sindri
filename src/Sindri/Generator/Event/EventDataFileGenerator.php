@@ -11,15 +11,15 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Sindri\Generator\Http;
+namespace Sindri\Generator\Event;
 
 use Override;
 use Sindri\Generator\Abstract\FileGenerator;
-use Sindri\Generator\Http\Contract\DataFileGeneratorContract;
-use Valkyrja\Http\Routing\Data\Contract\RouteContract;
-use Valkyrja\Http\Routing\Data\HttpRoutingData;
+use Sindri\Generator\Event\Contract\DataFileGeneratorContract;
+use Valkyrja\Event\Data\Contract\ListenerContract;
+use Valkyrja\Event\Data\EventData;
 
-class DataFileGenerator extends FileGenerator implements DataFileGeneratorContract
+class EventDataFileGenerator extends FileGenerator implements DataFileGeneratorContract
 {
     /**
      * @param non-empty-string $directory The directory
@@ -27,12 +27,12 @@ class DataFileGenerator extends FileGenerator implements DataFileGeneratorContra
      * @param non-empty-string $className The class name
      */
     public function __construct(
-        protected string $directory,
-        protected HttpRoutingData $data,
+        string $directory,
+        protected EventData $data,
         protected string $namespace,
-        protected string $className,
+        string $className,
     ) {
-        parent::__construct(filePath: rtrim($directory, '/') . "/$className.php");
+        parent::__construct(directory: $directory, className: $className);
     }
 
     /**
@@ -54,9 +54,9 @@ class DataFileGenerator extends FileGenerator implements DataFileGeneratorContra
 
             namespace $namespace;
 
-            use Sindri\Http\Data\HttpRoutingData;
+            use Valkyrja\Event\Data\EventData;
 
-            final readonly class $className extends HttpRoutingData
+            final readonly class $className extends EventData
             {
                 public function __construct()
                 {
@@ -75,7 +75,7 @@ class DataFileGenerator extends FileGenerator implements DataFileGeneratorContra
     #[Override]
     public function generateClassContents(): string
     {
-        $dataNamespace = HttpRoutingData::class;
+        $dataNamespace = EventData::class;
 
         $contents = $this->generateClassNamedArguments();
 
@@ -93,69 +93,55 @@ class DataFileGenerator extends FileGenerator implements DataFileGeneratorContra
      */
     protected function generateClassNamedArguments(): string
     {
-        $data          = $this->data;
-
-        $paths         = var_export($data->paths, true);
-        $dynamicPaths  = var_export($data->dynamicPaths, true);
-        $regexes       = var_export($data->regexes, true);
-        $routes        = $this->getRoutesAsContent();
+        $events    = var_export($this->data->events, true);
+        $listeners = $this->getListenersAsContent();
 
         // phpcs:disable
         return <<<PHP
-            routes: $routes,
-            paths: $paths,
-            dynamicPaths: $dynamicPaths,
-            regexes: $regexes
+            events: $events,
+            listeners: $listeners,
             PHP;
         // phpcs:enable
     }
 
     /**
-     * Get all routes as a string.
+     * Get all listeners as a string.
      *
      * @return non-empty-string
      */
-    protected function getRoutesAsContent(): string
+    protected function getListenersAsContent(): string
     {
-        $routes = $this->data->routes;
+        $listeners = $this->data->listeners;
 
-        $routesContent = '';
+        $listenersContent = '';
 
-        foreach ($routes as $key => $route) {
-            $route = $route();
+        foreach ($listeners as $key => $listener) {
+            $listener = $listener();
 
-            $routeContent = $this->getRouteAsContent($route);
+            $listenerContent = $this->getListenerAsContent($listener);
 
-            $routesContent .= <<<PHP
-                '$key' => $routeContent,
+            $listenersContent .= <<<PHP
+                '$key' => $listenerContent,
 
                 PHP;
         }
 
         return <<<PHP
             [
-                $routesContent
+                $listenersContent
             ]
             PHP;
     }
 
     /**
-     * Get the route as a string.
+     * Get the listener as a string.
      *
      * @return non-empty-string
      */
-    protected function getRouteAsContent(RouteContract $route): string
+    protected function getListenerAsContent(ListenerContract $listener): string
     {
-        $contract = RouteContract::class;
-        $content  = $this->generateObjectsContents($route);
-
-        $replace = <<<PHP
-               'arguments' => 
-              array (
-              ),
-            PHP;
-
-        $content = str_replace($replace, '', $content);
+        $contract = ListenerContract::class;
+        $content  = $this->generateObjectsContents($listener);
 
         // phpcs:disable
         return <<<PHP

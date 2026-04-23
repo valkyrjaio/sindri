@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Valkyrja Framework package.
+ * This file is part of the Sindri package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -11,10 +11,8 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Sindri\Cli\Command\Constant;
+namespace Sindri\Tests\Classes\Provider\Sub;
 
-final class CommandName
+final class TestOtherServiceClass
 {
-    /** @var non-empty-string */
-    public const string HTTP_DATA_GENERATE = 'http:data:generate';
 }

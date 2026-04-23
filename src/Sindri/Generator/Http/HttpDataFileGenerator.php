@@ -11,15 +11,15 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Sindri\Generator\Cli;
+namespace Sindri\Generator\Http;
 
 use Override;
 use Sindri\Generator\Abstract\FileGenerator;
-use Sindri\Generator\Cli\Contract\DataFileGeneratorContract;
-use Valkyrja\Cli\Routing\Data\CliRoutingData;
-use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
+use Sindri\Generator\Http\Contract\DataFileGeneratorContract;
+use Valkyrja\Http\Routing\Data\Contract\RouteContract;
+use Valkyrja\Http\Routing\Data\HttpRoutingData;
 
-class DataFileGenerator extends FileGenerator implements DataFileGeneratorContract
+class HttpDataFileGenerator extends FileGenerator implements DataFileGeneratorContract
 {
     /**
      * @param non-empty-string $directory The directory
@@ -27,12 +27,12 @@ class DataFileGenerator extends FileGenerator implements DataFileGeneratorContra
      * @param non-empty-string $className The class name
      */
     public function __construct(
-        protected string $directory,
-        protected CliRoutingData $data,
+        string $directory,
+        protected HttpRoutingData $data,
         protected string $namespace,
-        protected string $className,
+        string $className,
     ) {
-        parent::__construct(filePath: rtrim($directory, '/') . "/$className.php");
+        parent::__construct(directory: $directory, className: $className);
     }
 
     /**
@@ -41,9 +41,9 @@ class DataFileGenerator extends FileGenerator implements DataFileGeneratorContra
     #[Override]
     public function generateFileContents(): string
     {
-        $namespace            = $this->namespace;
-        $className            = $this->className;
-        $routes               = $this->getRoutesAsContent();
+        $namespace = $this->namespace;
+        $className = $this->className;
+        $contents  = $this->generateClassNamedArguments();
 
         return <<<PHP
             <?php
@@ -54,14 +54,14 @@ class DataFileGenerator extends FileGenerator implements DataFileGeneratorContra
 
             namespace $namespace;
 
-            use Sindri\Cli\Data\CliRoutingData;
+            use Sindri\Http\Data\HttpRoutingData;
 
-            final readonly class $className extends CliRoutingData
+            final readonly class $className extends HttpRoutingData
             {
                 public function __construct()
                 {
                     parent::__construct(
-                        routes: $routes,
+                        $contents
                     );
                 }
             }
@@ -75,15 +75,37 @@ class DataFileGenerator extends FileGenerator implements DataFileGeneratorContra
     #[Override]
     public function generateClassContents(): string
     {
-        $dataNamespace = CliRoutingData::class;
+        $dataNamespace = HttpRoutingData::class;
 
-        $routes = $this->getRoutesAsContent();
+        $contents = $this->generateClassNamedArguments();
 
         // phpcs:disable
         return <<<PHP
             new \\$dataNamespace(
-                routes: $routes,
+                $contents
             )
+            PHP;
+        // phpcs:enable
+    }
+
+    /**
+     * Generate the class named arguments.
+     */
+    protected function generateClassNamedArguments(): string
+    {
+        $data          = $this->data;
+
+        $paths         = var_export($data->paths, true);
+        $dynamicPaths  = var_export($data->dynamicPaths, true);
+        $regexes       = var_export($data->regexes, true);
+        $routes        = $this->getRoutesAsContent();
+
+        // phpcs:disable
+        return <<<PHP
+            routes: $routes,
+            paths: $paths,
+            dynamicPaths: $dynamicPaths,
+            regexes: $regexes
             PHP;
         // phpcs:enable
     }
@@ -126,6 +148,14 @@ class DataFileGenerator extends FileGenerator implements DataFileGeneratorContra
     {
         $contract = RouteContract::class;
         $content  = $this->generateObjectsContents($route);
+
+        $replace = <<<PHP
+               'arguments' => 
+              array (
+              ),
+            PHP;
+
+        $content = str_replace($replace, '', $content);
 
         // phpcs:disable
         return <<<PHP

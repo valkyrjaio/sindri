@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -34,7 +34,9 @@ class SindriComponentProvider implements ComponentProviderContract
     #[Override]
     public static function getContainerProviders(ApplicationContract $app): array
     {
-        return [];
+        return [
+            SindriCommandServiceProvider::class,
+        ];
     }
 
     /**
@@ -52,7 +54,9 @@ class SindriComponentProvider implements ComponentProviderContract
     #[Override]
     public static function getCliProviders(ApplicationContract $app): array
     {
-        return [];
+        return [
+            SindriCliRouteProvider::class,
+        ];
     }
 
     /**

@@ -13,17 +13,18 @@ declare(strict_types=1);
 
 namespace Sindri\Ast\Result;
 
+use PhpParser\Node\Expr;
+
 /**
  * Routes extracted from a single CliRouteProviderContract or HttpRouteProviderContract implementation.
  *
  * `controllerClasses` — classes listed by getControllerClasses() that carry #[Route]
- *                        attributes; a subsequent AttributeRouteReader will scan each
- *                        class and produce the full route data objects.
+ *                        attributes; a subsequent CliRouteAttributeReader or
+ *                        HttpRouteAttributeReader will scan each class.
  *
- * `routes`             — Route data objects returned directly by getRoutes();
- *                        the exact user-defined shapes are preserved as-is.
- *                        (Populated once AST parsing of getRoutes() new-expressions
- *                        is implemented.)
+ * `routes`             — raw AST Expr nodes captured verbatim from getRoutes();
+ *                        the file generator writes them back out as-is so the exact
+ *                        user-defined shape is preserved without re-interpretation.
  *
  * This result is shared by both CLI and HTTP route providers since their contracts
  * are structurally identical (getControllerClasses / getRoutes).
@@ -32,7 +33,7 @@ readonly class RouteProviderResult
 {
     /**
      * @param class-string[] $controllerClasses
-     * @param object[]       $routes            Route data objects (CliRoutingData\RouteContract or HttpRoutingData\RouteContract)
+     * @param Expr[]         $routes             Raw AST expressions from getRoutes()
      */
     public function __construct(
         public array $controllerClasses = [],
