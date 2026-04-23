@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Valkyrja Framework package.
+ * This file is part of the Sindri package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -100,11 +100,11 @@ class AstHttpDataFileGenerator extends AstFileGenerator implements HttpDataFileG
         array $routes,
         array $routeData,
     ): string {
-        $routingData  = HttpRoutingData::class;
+        $routingData   = HttpRoutingData::class;
         $routesContent = $this->getRoutesAsContent($routes, $routeData);
-        $paths        = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildPaths($routeData)));
-        $dynamicPaths = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildDynamicPaths($routeData)));
-        $regexes      = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildRegexes($routeData)));
+        $paths         = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildPaths($routeData)));
+        $dynamicPaths  = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildDynamicPaths($routeData)));
+        $regexes       = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildRegexes($routeData)));
 
         return <<<PHP
             <?php
