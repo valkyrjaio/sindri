@@ -14,8 +14,9 @@ declare(strict_types=1);
 namespace Sindri\Generator\Ast\Container;
 
 use Override;
-use Sindri\Generator\Abstract\FileGenerator;
+use Sindri\Generator\Abstract\AstFileGenerator;
 use Sindri\Generator\Container\Contract\ContainerDataFileGeneratorContract;
+use Sindri\Generator\Enum\GenerateStatus;
 use Valkyrja\Container\Data\ContainerData;
 
 /**
@@ -29,33 +30,50 @@ use Valkyrja\Container\Data\ContainerData;
  * because deferredCallback alone is sufficient for the container to resolve
  * deferred bindings, and the provider list is managed by the app config.
  */
-class AstContainerDataFileGenerator extends FileGenerator implements ContainerDataFileGeneratorContract
+class AstContainerDataFileGenerator extends AstFileGenerator implements ContainerDataFileGeneratorContract
 {
     /**
-     * @param non-empty-string                                       $directory
-     * @param array<class-string, array{0: class-string, 1: string}> $publishers
-     * @param non-empty-string                                       $namespace
-     * @param non-empty-string                                       $className
+     * @inheritDoc
      */
-    public function __construct(
+    #[Override]
+    public function generateFile(
         string $directory,
-        protected array $publishers,
-        protected string $namespace,
         string $className,
-    ) {
-        parent::__construct(directory: $directory, className: $className);
+        string $namespace,
+        array $publishers,
+    ): GenerateStatus {
+        return $this->writeFile($directory, $className, $this->generateFileContents($namespace, $className, $publishers));
     }
 
     /**
      * @inheritDoc
      */
     #[Override]
-    public function generateFileContents(): string
+    public function generateClassContents(array $publishers): string
     {
-        $namespace        = $this->namespace;
-        $className        = $this->className;
+        $dataNamespace    = ContainerData::class;
+        $deferredCallback = $this->getDeferredCallbackContent($publishers);
+
+        // phpcs:disable
+        return <<<PHP
+            new \\$dataNamespace(
+                deferredCallback: $deferredCallback,
+            )
+            PHP;
+        // phpcs:enable
+    }
+
+    /**
+     * @param non-empty-string                                       $namespace
+     * @param non-empty-string                                       $className
+     * @param array<class-string, array{0: class-string, 1: string}> $publishers
+     *
+     * @return non-empty-string
+     */
+    protected function generateFileContents(string $namespace, string $className, array $publishers): string
+    {
         $containerData    = ContainerData::class;
-        $deferredCallback = $this->getDeferredCallbackContent();
+        $deferredCallback = $this->getDeferredCallbackContent($publishers);
 
         return <<<PHP
             <?php
@@ -82,33 +100,17 @@ class AstContainerDataFileGenerator extends FileGenerator implements ContainerDa
     }
 
     /**
-     * @inheritDoc
-     */
-    #[Override]
-    public function generateClassContents(): string
-    {
-        $dataNamespace    = ContainerData::class;
-        $deferredCallback = $this->getDeferredCallbackContent();
-
-        // phpcs:disable
-        return <<<PHP
-            new \\$dataNamespace(
-                deferredCallback: $deferredCallback,
-            )
-            PHP;
-        // phpcs:enable
-    }
-
-    /**
      * Pretty-print all publisher entries as a PHP array literal using ::class syntax.
+     *
+     * @param array<class-string, array{0: class-string, 1: string}> $publishers
      *
      * @return non-empty-string
      */
-    protected function getDeferredCallbackContent(): string
+    protected function getDeferredCallbackContent(array $publishers): string
     {
         $content = '';
 
-        foreach ($this->publishers as $serviceClass => [$providerClass, $method]) {
+        foreach ($publishers as $serviceClass => [$providerClass, $method]) {
             $content .= <<<PHP
                 \\$serviceClass::class => [\\$providerClass::class, '$method'],
 

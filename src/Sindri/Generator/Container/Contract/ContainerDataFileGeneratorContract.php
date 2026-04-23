@@ -13,14 +13,31 @@ declare(strict_types=1);
 
 namespace Sindri\Generator\Container\Contract;
 
-use Sindri\Generator\Contract\FileGeneratorContract;
+use Sindri\Generator\Enum\GenerateStatus;
 
-interface ContainerDataFileGeneratorContract extends FileGeneratorContract
+interface ContainerDataFileGeneratorContract
 {
     /**
-     * Generate the data class contents.
+     * Generate the container data file.
+     *
+     * @param non-empty-string                                       $directory
+     * @param non-empty-string                                       $className
+     * @param non-empty-string                                       $namespace
+     * @param array<class-string, array{0: class-string, 1: string}> $publishers
+     */
+    public function generateFile(
+        string $directory,
+        string $className,
+        string $namespace,
+        array $publishers,
+    ): GenerateStatus;
+
+    /**
+     * Generate the data class contents for inline use.
+     *
+     * @param array<class-string, array{0: class-string, 1: string}> $publishers
      *
      * @return non-empty-string
      */
-    public function generateClassContents(): string;
+    public function generateClassContents(array $publishers): string;
 }

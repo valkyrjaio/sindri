@@ -13,14 +13,39 @@ declare(strict_types=1);
 
 namespace Sindri\Generator\Http\Contract;
 
-use Sindri\Generator\Contract\FileGeneratorContract;
+use PhpParser\Node\Expr;
+use Sindri\Ast\Data\HttpRouteData;
+use Sindri\Generator\Enum\GenerateStatus;
 
-interface HttpDataFileGeneratorContract extends FileGeneratorContract
+interface HttpDataFileGeneratorContract
 {
     /**
-     * Generate the data class contents.
+     * Generate the HTTP routing data file.
+     *
+     * @param non-empty-string             $directory
+     * @param non-empty-string             $className
+     * @param non-empty-string             $namespace
+     * @param array<string, Expr>          $routes
+     * @param array<string, HttpRouteData> $routeData
+     */
+    public function generateFile(
+        string $directory,
+        string $className,
+        string $namespace,
+        array $routes,
+        array $routeData,
+    ): GenerateStatus;
+
+    /**
+     * Generate the data class contents for inline use.
+     *
+     * @param array<string, Expr>          $routes
+     * @param array<string, HttpRouteData> $routeData
      *
      * @return non-empty-string
      */
-    public function generateClassContents(): string;
+    public function generateClassContents(
+        array $routes,
+        array $routeData,
+    ): string;
 }

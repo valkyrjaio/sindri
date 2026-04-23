@@ -11,34 +11,34 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Sindri\Generator\Cli\Contract;
+namespace Sindri\Generator\Event\Contract;
 
 use PhpParser\Node\Expr;
 use Sindri\Generator\Enum\GenerateStatus;
 
-interface CliDataFileGeneratorContract
+interface EventDataFileGeneratorContract
 {
     /**
-     * Generate the CLI routing data file.
+     * Generate the event listener data file.
      *
      * @param non-empty-string    $directory
      * @param non-empty-string    $className
      * @param non-empty-string    $namespace
-     * @param array<string, Expr> $routes
+     * @param array<string, Expr> $listeners
      */
     public function generateFile(
         string $directory,
         string $className,
         string $namespace,
-        array $routes,
+        array $listeners,
     ): GenerateStatus;
 
     /**
      * Generate the data class contents for inline use.
      *
-     * @param array<string, Expr> $routes
+     * @param array<string, Expr> $listeners
      *
      * @return non-empty-string
      */
-    public function generateClassContents(array $routes): string;
+    public function generateClassContents(array $listeners): string;
 }

@@ -25,7 +25,8 @@ use PhpParser\PrettyPrinter\Standard;
 use PhpParser\PrettyPrinterAbstract;
 use Sindri\Ast\Data\HttpParameterData;
 use Sindri\Ast\Data\HttpRouteData;
-use Sindri\Generator\Abstract\FileGenerator;
+use Sindri\Generator\Abstract\AstFileGenerator;
+use Sindri\Generator\Enum\GenerateStatus;
 use Sindri\Generator\Http\Contract\HttpDataFileGeneratorContract;
 use Valkyrja\Http\Routing\Data\Contract\RouteContract;
 use Valkyrja\Http\Routing\Data\DynamicRoute;
@@ -45,40 +46,65 @@ use function is_string;
  * Accepts PHP-Parser Expr nodes produced by HttpRouteAttributeReader and the
  * plain HttpRouteData objects used to derive paths, dynamicPaths, and regexes.
  */
-class AstHttpDataFileGenerator extends FileGenerator implements HttpDataFileGeneratorContract
+class AstHttpDataFileGenerator extends AstFileGenerator implements HttpDataFileGeneratorContract
 {
-    /**
-     * @param non-empty-string             $directory
-     * @param array<string, Expr>          $routes
-     * @param array<string, HttpRouteData> $routeData
-     * @param non-empty-string             $namespace
-     * @param non-empty-string             $className
-     */
     public function __construct(
-        string $directory,
-        protected array $routes,
-        protected array $routeData,
-        protected string $namespace,
-        string $className,
         protected PrettyPrinterAbstract $printer = new Standard(),
         protected ProcessorContract $processor = new Processor(),
     ) {
-        parent::__construct(directory: $directory, className: $className);
     }
 
     /**
      * @inheritDoc
      */
     #[Override]
-    public function generateFileContents(): string
+    public function generateFile(
+        string $directory,
+        string $className,
+        string $namespace,
+        array $routes,
+        array $routeData,
+    ): GenerateStatus {
+        return $this->writeFile($directory, $className, $this->generateFileContents($namespace, $className, $routes, $routeData));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    #[Override]
+    public function generateClassContents(array $routes, array $routeData): string
     {
-        $namespace    = $this->namespace;
-        $className    = $this->className;
+        $dataNamespace = HttpRoutingData::class;
+        $routesContent = $this->getRoutesAsContent($routes, $routeData);
+
+        // phpcs:disable
+        return <<<PHP
+            new \\$dataNamespace(
+                routes: $routesContent,
+            )
+            PHP;
+        // phpcs:enable
+    }
+
+    /**
+     * @param non-empty-string             $namespace
+     * @param non-empty-string             $className
+     * @param array<string, Expr>          $routes
+     * @param array<string, HttpRouteData> $routeData
+     *
+     * @return non-empty-string
+     */
+    protected function generateFileContents(
+        string $namespace,
+        string $className,
+        array $routes,
+        array $routeData,
+    ): string {
         $routingData  = HttpRoutingData::class;
-        $routes       = $this->getRoutesAsContent();
-        $paths        = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildPaths()));
-        $dynamicPaths = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildDynamicPaths()));
-        $regexes      = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildRegexes()));
+        $routesContent = $this->getRoutesAsContent($routes, $routeData);
+        $paths        = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildPaths($routeData)));
+        $dynamicPaths = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildDynamicPaths($routeData)));
+        $regexes      = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildRegexes($routeData)));
 
         return <<<PHP
             <?php
@@ -96,7 +122,7 @@ class AstHttpDataFileGenerator extends FileGenerator implements HttpDataFileGene
                 public function __construct()
                 {
                     parent::__construct(
-                        routes: $routes,
+                        routes: $routesContent,
                         paths: $paths,
                         dynamicPaths: $dynamicPaths,
                         regexes: $regexes,
@@ -108,33 +134,17 @@ class AstHttpDataFileGenerator extends FileGenerator implements HttpDataFileGene
     }
 
     /**
-     * @inheritDoc
-     */
-    #[Override]
-    public function generateClassContents(): string
-    {
-        $dataNamespace = HttpRoutingData::class;
-        $routes        = $this->getRoutesAsContent();
-
-        // phpcs:disable
-        return <<<PHP
-            new \\$dataNamespace(
-                routes: $routes,
-            )
-            PHP;
-        // phpcs:enable
-    }
-
-    /**
      * Build the paths map: method → path → route name (static routes only).
+     *
+     * @param array<string, HttpRouteData> $routeData
      *
      * @return array<string, array<string, string>>
      */
-    protected function buildPaths(): array
+    protected function buildPaths(array $routeData): array
     {
         $paths = [];
 
-        foreach ($this->routeData as $name => $data) {
+        foreach ($routeData as $name => $data) {
             if ($data->isDynamic) {
                 continue;
             }
@@ -152,13 +162,15 @@ class AstHttpDataFileGenerator extends FileGenerator implements HttpDataFileGene
     /**
      * Build the dynamicPaths map: method → path → route name (dynamic routes only).
      *
+     * @param array<string, HttpRouteData> $routeData
+     *
      * @return array<string, array<string, string>>
      */
-    protected function buildDynamicPaths(): array
+    protected function buildDynamicPaths(array $routeData): array
     {
         $dynamicPaths = [];
 
-        foreach ($this->routeData as $name => $data) {
+        foreach ($routeData as $name => $data) {
             if (! $data->isDynamic) {
                 continue;
             }
@@ -176,13 +188,15 @@ class AstHttpDataFileGenerator extends FileGenerator implements HttpDataFileGene
     /**
      * Build the regexes map: method → regex → route name (dynamic routes only).
      *
+     * @param array<string, HttpRouteData> $routeData
+     *
      * @return array<string, array<string, string>>
      */
-    protected function buildRegexes(): array
+    protected function buildRegexes(array $routeData): array
     {
         $regexes = [];
 
-        foreach ($this->routeData as $name => $data) {
+        foreach ($routeData as $name => $data) {
             if (! $data->isDynamic || $data->parameters === []) {
                 continue;
             }
@@ -313,15 +327,18 @@ class AstHttpDataFileGenerator extends FileGenerator implements HttpDataFileGene
      * For DynamicRoute expressions, injects the Processor-computed regex as a named arg
      * because DynamicRoute::__construct() requires it.
      *
+     * @param array<string, Expr>          $routes
+     * @param array<string, HttpRouteData> $routeData
+     *
      * @return non-empty-string
      */
-    protected function getRoutesAsContent(): string
+    protected function getRoutesAsContent(array $routes, array $routeData): string
     {
         $routeContract = RouteContract::class;
         $routesContent = '';
 
-        foreach ($this->routes as $key => $routeExpr) {
-            $data = $this->routeData[$key] ?? null;
+        foreach ($routes as $key => $routeExpr) {
+            $data = $routeData[$key] ?? null;
 
             if ($data !== null && $data->isDynamic && $routeExpr instanceof New_) {
                 $computedRegex     = $data->parameters !== [] ? $this->computeRegex($data) : '';

@@ -37,7 +37,11 @@ use Sindri\Generator\Ast\Cli\AstCliDataFileGenerator;
 use Sindri\Generator\Ast\Container\AstContainerDataFileGenerator;
 use Sindri\Generator\Ast\Event\AstEventDataFileGenerator;
 use Sindri\Generator\Ast\Http\AstHttpDataFileGenerator;
+use Sindri\Generator\Cli\Contract\CliDataFileGeneratorContract;
+use Sindri\Generator\Container\Contract\ContainerDataFileGeneratorContract;
 use Sindri\Generator\Enum\GenerateStatus;
+use Sindri\Generator\Event\Contract\EventDataFileGeneratorContract;
+use Sindri\Generator\Http\Contract\HttpDataFileGeneratorContract;
 use Valkyrja\Cli\Interaction\Formatter\ErrorFormatter;
 use Valkyrja\Cli\Interaction\Formatter\HighlightedTextFormatter;
 use Valkyrja\Cli\Interaction\Formatter\SuccessFormatter;
@@ -62,6 +66,10 @@ abstract class GenerateDataFromAst
         protected CliRouteAttributeReaderContract $cliRouteAttributeReader = new CliRouteAttributeReader(),
         protected HttpRouteAttributeReaderContract $httpRouteAttributeReader = new HttpRouteAttributeReader(),
         protected ListenerAttributeReaderContract $listenerAttributeReader = new ListenerAttributeReader(),
+        protected ContainerDataFileGeneratorContract $containerGenerator = new AstContainerDataFileGenerator(),
+        protected EventDataFileGeneratorContract $eventGenerator = new AstEventDataFileGenerator(),
+        protected CliDataFileGeneratorContract $cliGenerator = new AstCliDataFileGenerator(),
+        protected HttpDataFileGeneratorContract $httpGenerator = new AstHttpDataFileGenerator(),
     ) {
     }
 
@@ -203,14 +211,12 @@ abstract class GenerateDataFromAst
             $publishers = [...$publishers, ...$result->publishers];
         }
 
-        $generator = new AstContainerDataFileGenerator(
+        $status = $this->containerGenerator->generateFile(
             directory: $config->dataPath,
-            publishers: $publishers,
-            namespace: $config->dataNamespace,
             className: 'AppContainerData',
+            namespace: $config->dataNamespace,
+            publishers: $publishers,
         );
-
-        $status = $generator->generateFile();
 
         return $this->addMessagesForGenerateStatus($output, $status)
             ->withAddedMessages(new NewLine())
@@ -251,14 +257,12 @@ abstract class GenerateDataFromAst
             }
         }
 
-        $generator = new AstEventDataFileGenerator(
+        $status = $this->eventGenerator->generateFile(
             directory: $config->dataPath,
-            listeners: $allListeners,
-            namespace: $config->dataNamespace,
             className: 'AppEventData',
+            namespace: $config->dataNamespace,
+            listeners: $allListeners,
         );
-
-        $status = $generator->generateFile();
 
         return $this->addMessagesForGenerateStatus($output, $status)
             ->withAddedMessages(new NewLine())
@@ -299,14 +303,12 @@ abstract class GenerateDataFromAst
             }
         }
 
-        $generator = new AstCliDataFileGenerator(
+        $status = $this->cliGenerator->generateFile(
             directory: $config->dataPath,
-            routes: $allRoutes,
-            namespace: $config->dataNamespace,
             className: 'AppCliRoutingData',
+            namespace: $config->dataNamespace,
+            routes: $allRoutes,
         );
-
-        $status = $generator->generateFile();
 
         return $this->addMessagesForGenerateStatus($output, $status)
             ->withAddedMessages(new NewLine())
@@ -349,15 +351,13 @@ abstract class GenerateDataFromAst
             }
         }
 
-        $generator = new AstHttpDataFileGenerator(
+        $status = $this->httpGenerator->generateFile(
             directory: $config->dataPath,
+            className: 'AppHttpRoutingData',
+            namespace: $config->dataNamespace,
             routes: $allRoutes,
             routeData: $allRouteData,
-            namespace: $config->dataNamespace,
-            className: 'AppHttpRoutingData',
         );
-
-        $status = $generator->generateFile();
 
         return $this->addMessagesForGenerateStatus($output, $status)
             ->withAddedMessages(new NewLine())

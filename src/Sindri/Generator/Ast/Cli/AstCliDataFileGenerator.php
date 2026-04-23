@@ -17,8 +17,9 @@ use Override;
 use PhpParser\Node\Expr;
 use PhpParser\PrettyPrinter\Standard;
 use PhpParser\PrettyPrinterAbstract;
-use Sindri\Generator\Abstract\FileGenerator;
+use Sindri\Generator\Abstract\AstFileGenerator;
 use Sindri\Generator\Cli\Contract\CliDataFileGeneratorContract;
+use Sindri\Generator\Enum\GenerateStatus;
 use Valkyrja\Cli\Routing\Data\CliRoutingData;
 use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
 
@@ -28,34 +29,55 @@ use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
  * Accepts PHP-Parser Expr nodes produced by CliRouteAttributeReader and pretty-prints
  * them directly into the generated data class, bypassing any runtime app boot.
  */
-class AstCliDataFileGenerator extends FileGenerator implements CliDataFileGeneratorContract
+class AstCliDataFileGenerator extends AstFileGenerator implements CliDataFileGeneratorContract
 {
-    /**
-     * @param non-empty-string    $directory
-     * @param array<string, Expr> $routes
-     * @param non-empty-string    $namespace
-     * @param non-empty-string    $className
-     */
     public function __construct(
-        string $directory,
-        protected array $routes,
-        protected string $namespace,
-        string $className,
         protected PrettyPrinterAbstract $printer = new Standard(),
     ) {
-        parent::__construct(directory: $directory, className: $className);
     }
 
     /**
      * @inheritDoc
      */
     #[Override]
-    public function generateFileContents(): string
+    public function generateFile(
+        string $directory,
+        string $className,
+        string $namespace,
+        array $routes,
+    ): GenerateStatus {
+        return $this->writeFile($directory, $className, $this->generateFileContents($namespace, $className, $routes));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    #[Override]
+    public function generateClassContents(array $routes): string
     {
-        $namespace   = $this->namespace;
-        $className   = $this->className;
-        $routingData = CliRoutingData::class;
-        $routes      = $this->getRoutesAsContent();
+        $dataNamespace = 'Sindri\Cli\Data\CliRoutingData';
+        $routesContent = $this->getRoutesAsContent($routes);
+
+        // phpcs:disable
+        return <<<PHP
+            new \\$dataNamespace(
+                routes: $routesContent,
+            )
+            PHP;
+        // phpcs:enable
+    }
+
+    /**
+     * @param non-empty-string    $namespace
+     * @param non-empty-string    $className
+     * @param array<string, Expr> $routes
+     *
+     * @return non-empty-string
+     */
+    protected function generateFileContents(string $namespace, string $className, array $routes): string
+    {
+        $routingData   = CliRoutingData::class;
+        $routesContent = $this->getRoutesAsContent($routes);
 
         return <<<PHP
             <?php
@@ -73,7 +95,7 @@ class AstCliDataFileGenerator extends FileGenerator implements CliDataFileGenera
                 public function __construct()
                 {
                     parent::__construct(
-                        routes: $routes,
+                        routes: $routesContent,
                     );
                 }
             }
@@ -82,34 +104,18 @@ class AstCliDataFileGenerator extends FileGenerator implements CliDataFileGenera
     }
 
     /**
-     * @inheritDoc
-     */
-    #[Override]
-    public function generateClassContents(): string
-    {
-        $dataNamespace = 'Sindri\Cli\Data\CliRoutingData';
-        $routes        = $this->getRoutesAsContent();
-
-        // phpcs:disable
-        return <<<PHP
-            new \\$dataNamespace(
-                routes: $routes,
-            )
-            PHP;
-        // phpcs:enable
-    }
-
-    /**
      * Pretty-print all routes into a PHP array literal string.
+     *
+     * @param array<string, Expr> $routes
      *
      * @return non-empty-string
      */
-    protected function getRoutesAsContent(): string
+    protected function getRoutesAsContent(array $routes): string
     {
         $routeContract = RouteContract::class;
         $routesContent = '';
 
-        foreach ($this->routes as $key => $routeExpr) {
+        foreach ($routes as $key => $routeExpr) {
             $routePhp       = $this->printer->prettyPrintExpr($routeExpr);
             $routesContent .= <<<PHP
                 '$key' => static fn (): \\$routeContract => $routePhp,

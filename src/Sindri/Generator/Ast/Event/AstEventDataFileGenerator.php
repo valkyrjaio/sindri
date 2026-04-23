@@ -17,8 +17,9 @@ use Override;
 use PhpParser\Node\Expr;
 use PhpParser\PrettyPrinter\Standard;
 use PhpParser\PrettyPrinterAbstract;
-use Sindri\Generator\Abstract\FileGenerator;
-use Sindri\Generator\Event\Contract\HttpDataFileGeneratorContract;
+use Sindri\Generator\Abstract\AstFileGenerator;
+use Sindri\Generator\Enum\GenerateStatus;
+use Sindri\Generator\Event\Contract\EventDataFileGeneratorContract;
 use Valkyrja\Event\Data\Contract\ListenerContract;
 use Valkyrja\Event\Data\EventData;
 
@@ -28,34 +29,56 @@ use Valkyrja\Event\Data\EventData;
  * Accepts PHP-Parser Expr nodes produced by ListenerAttributeReader and pretty-prints
  * them directly into the generated data class, bypassing any runtime app boot.
  */
-class AstEventDataFileGenerator extends FileGenerator implements HttpDataFileGeneratorContract
+class AstEventDataFileGenerator extends AstFileGenerator implements EventDataFileGeneratorContract
 {
-    /**
-     * @param non-empty-string    $directory
-     * @param array<string, Expr> $listeners
-     * @param non-empty-string    $namespace
-     * @param non-empty-string    $className
-     */
     public function __construct(
-        string $directory,
-        protected array $listeners,
-        protected string $namespace,
-        string $className,
         protected PrettyPrinterAbstract $printer = new Standard(),
     ) {
-        parent::__construct(directory: $directory, className: $className);
     }
 
     /**
      * @inheritDoc
      */
     #[Override]
-    public function generateFileContents(): string
+    public function generateFile(
+        string $directory,
+        string $className,
+        string $namespace,
+        array $listeners,
+    ): GenerateStatus {
+        return $this->writeFile($directory, $className, $this->generateFileContents($namespace, $className, $listeners));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    #[Override]
+    public function generateClassContents(array $listeners): string
     {
-        $namespace = $this->namespace;
-        $className = $this->className;
-        $eventData = EventData::class;
-        $listeners = $this->getListenersAsContent();
+        $dataNamespace    = EventData::class;
+        $listenersContent = $this->getListenersAsContent($listeners);
+
+        // phpcs:disable
+        return <<<PHP
+            new \\$dataNamespace(
+                events: [],
+                listeners: $listenersContent,
+            )
+            PHP;
+        // phpcs:enable
+    }
+
+    /**
+     * @param non-empty-string    $namespace
+     * @param non-empty-string    $className
+     * @param array<string, Expr> $listeners
+     *
+     * @return non-empty-string
+     */
+    protected function generateFileContents(string $namespace, string $className, array $listeners): string
+    {
+        $eventData        = EventData::class;
+        $listenersContent = $this->getListenersAsContent($listeners);
 
         return <<<PHP
             <?php
@@ -74,7 +97,7 @@ class AstEventDataFileGenerator extends FileGenerator implements HttpDataFileGen
                 {
                     parent::__construct(
                         events: [],
-                        listeners: $listeners,
+                        listeners: $listenersContent,
                     );
                 }
             }
@@ -83,35 +106,18 @@ class AstEventDataFileGenerator extends FileGenerator implements HttpDataFileGen
     }
 
     /**
-     * @inheritDoc
-     */
-    #[Override]
-    public function generateClassContents(): string
-    {
-        $dataNamespace = EventData::class;
-        $listeners     = $this->getListenersAsContent();
-
-        // phpcs:disable
-        return <<<PHP
-            new \\$dataNamespace(
-                events: [],
-                listeners: $listeners,
-            )
-            PHP;
-        // phpcs:enable
-    }
-
-    /**
      * Pretty-print all listeners into a PHP array literal string.
+     *
+     * @param array<string, Expr> $listeners
      *
      * @return non-empty-string
      */
-    protected function getListenersAsContent(): string
+    protected function getListenersAsContent(array $listeners): string
     {
         $listenerContract = ListenerContract::class;
         $listenersContent = '';
 
-        foreach ($this->listeners as $key => $listenerExpr) {
+        foreach ($listeners as $key => $listenerExpr) {
             $listenerPhp       = $this->printer->prettyPrintExpr($listenerExpr);
             $listenersContent .= <<<PHP
                 '$key' => static fn (): \\$listenerContract => $listenerPhp,
