@@ -16,7 +16,5 @@ namespace Sindri\Constant;
 final class CommandName
 {
     /** @var non-empty-string */
-    public const string CLI_DATA_GENERATE = 'cli:data:generate';
-    /** @var non-empty-string */
-    public const string HTTP_DATA_GENERATE = 'http:data:generate';
+    public const string DATA_GENERATE = 'data:generate';
 }

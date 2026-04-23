@@ -27,7 +27,7 @@ use Valkyrja\Cli\Routing\Attribute\Route\RouteHandler;
 use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
 use Valkyrja\Cli\Routing\Enum\ArgumentMode;
 
-class CliGenerateDataFromAstCommand extends GenerateDataFromAst
+class GenerateDataFromConfigCommand extends GenerateDataFromAst
 {
     public function __construct(
         protected RouteContract $route,
@@ -48,7 +48,7 @@ class CliGenerateDataFromAstCommand extends GenerateDataFromAst
     }
 
     #[Route(
-        name: CommandName::CLI_DATA_GENERATE,
+        name: CommandName::DATA_GENERATE,
         description: 'Generate data for the cli component',
         helpText: [self::class, 'help'],
     )]

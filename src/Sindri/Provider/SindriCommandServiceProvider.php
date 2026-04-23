@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Sindri\Provider;
 
 use Override;
-use Sindri\Cli\Command\CliGenerateDataFromAstCommand;
+use Sindri\Cli\Command\GenerateDataFromConfigCommand;
 use Valkyrja\Cli\Interaction\Output\Factory\Contract\OutputFactoryContract;
 use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
 use Valkyrja\Container\Manager\Contract\ContainerContract;
@@ -29,15 +29,15 @@ class SindriCommandServiceProvider implements ServiceProviderContract
     public static function publishers(): array
     {
         return [
-            CliGenerateDataFromAstCommand::class => [self::class, 'publishCliGenerateDataFromAstCommand'],
+            GenerateDataFromConfigCommand::class => [self::class, 'publishCliGenerateDataFromAstCommand'],
         ];
     }
 
     public static function publishCliGenerateDataFromAstCommand(ContainerContract $container): void
     {
         $container->setSingleton(
-            CliGenerateDataFromAstCommand::class,
-            new CliGenerateDataFromAstCommand(
+            GenerateDataFromConfigCommand::class,
+            new GenerateDataFromConfigCommand(
                 route: $container->getSingleton(RouteContract::class),
                 outputFactory: $container->getSingleton(OutputFactoryContract::class),
             )
