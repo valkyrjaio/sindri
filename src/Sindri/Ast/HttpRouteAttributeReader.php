@@ -77,14 +77,16 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
         $classPathPrefix = $this->extractClassPathPrefix($class, $useMap, $namespace, $currentClass);
         $classNamePrefix = $this->extractClassNamePrefix($class, $useMap, $namespace, $currentClass);
 
-        $routes = [];
+        $routes    = [];
+        $routeData = [];
 
         foreach ($class->getMethods() as $method) {
             foreach ($this->findAttributesOnNode($method, Route::class, $useMap, $namespace) as $attr) {
                 $data = $this->buildRouteData($attr->args, $method, $useMap, $namespace, $currentClass, $classPathPrefix, $classNamePrefix, false);
 
                 if ($data !== null) {
-                    $routes[$data->name] = $this->buildRouteExpr($data);
+                    $routes[$data->name]    = $this->buildRouteExpr($data);
+                    $routeData[$data->name] = $data;
                 }
             }
 
@@ -92,12 +94,13 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
                 $data = $this->buildRouteData($attr->args, $method, $useMap, $namespace, $currentClass, $classPathPrefix, $classNamePrefix, true);
 
                 if ($data !== null) {
-                    $routes[$data->name] = $this->buildRouteExpr($data);
+                    $routes[$data->name]    = $this->buildRouteExpr($data);
+                    $routeData[$data->name] = $data;
                 }
             }
         }
 
-        return new HttpRouteAttributeResult(routes: $routes);
+        return new HttpRouteAttributeResult(routes: $routes, routeData: $routeData);
     }
 
     /**
@@ -171,6 +174,9 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
 
         $path = $this->updatePath($path, $classPathPrefix, $method, $useMap, $namespace, $currentClass);
         $name = $this->updateName($name, $classNamePrefix, $method, $useMap, $namespace, $currentClass);
+
+        // Mirror RouteFactory::fromRoute(): any path containing '{' is dynamic
+        $isDynamic = $isDynamic || str_contains($path, '{');
 
         $requestMethods = $this->extractInlineRequestMethods($args, $useMap, $namespace, $currentClass);
         $requestMethods = $this->updateRequestMethods($requestMethods, $method, $useMap, $namespace, $currentClass);
@@ -531,6 +537,17 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
             }
         }
 
+        // #[Parameter] attributes placed on PHP method parameters (e.g., #[Parameter(...)] string $value)
+        foreach ($method->params as $methodParam) {
+            foreach ($this->findAttributesOnNode($methodParam, Parameter::class, $useMap, $namespace) as $attr) {
+                $param = $this->buildParameterData($attr->args, $useMap, $namespace, $currentClass);
+
+                if ($param !== null) {
+                    $parameters[] = $param;
+                }
+            }
+        }
+
         return $parameters;
     }
 
@@ -662,9 +679,13 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
      */
     protected function buildParameterExpr(HttpParameterData $data): Expr
     {
+        $regexExpr = str_contains($data->regex, '::')
+            ? $this->buildEnumCaseExpr($data->regex)
+            : $this->buildStringExpr($data->regex);
+
         $args = [
             $this->buildNamedArg('name', $this->buildStringExpr($data->name)),
-            $this->buildNamedArg('regex', $this->buildStringExpr($data->regex)),
+            $this->buildNamedArg('regex', $regexExpr),
         ];
 
         if ($data->cast !== null) {

@@ -316,7 +316,8 @@ abstract class GenerateDataFromAst
             new Message('Generating Http Routes Data....................'),
         )->writeMessages();
 
-        $allRoutes = [];
+        $allRoutes    = [];
+        $allRouteData = [];
 
         foreach ($httpRouteProviders as $providerClass) {
             $filePath = $this->fqnToFilePath($providerClass, $config->namespace, $config->dir);
@@ -334,14 +335,16 @@ abstract class GenerateDataFromAst
                     continue;
                 }
 
-                $attrResult = $this->httpRouteAttributeReader->readFile($controllerPath);
-                $allRoutes  = [...$allRoutes, ...$attrResult->routes];
+                $attrResult   = $this->httpRouteAttributeReader->readFile($controllerPath);
+                $allRoutes    = [...$allRoutes, ...$attrResult->routes];
+                $allRouteData = [...$allRouteData, ...$attrResult->routeData];
             }
         }
 
         $generator = new AstHttpDataFileGenerator(
             directory: $config->dataPath,
             routes: $allRoutes,
+            routeData: $allRouteData,
             namespace: $config->dataNamespace,
             className: 'AppHttpRoutingData',
         );

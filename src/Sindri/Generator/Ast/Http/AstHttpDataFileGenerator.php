@@ -14,37 +14,48 @@ declare(strict_types=1);
 namespace Sindri\Generator\Ast\Http;
 
 use Override;
+use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\New_;
+use PhpParser\Node\Identifier;
+use PhpParser\Node\Scalar\String_;
 use PhpParser\PrettyPrinter\Standard;
 use PhpParser\PrettyPrinterAbstract;
+use Sindri\Ast\Data\HttpParameterData;
+use Sindri\Ast\Data\HttpRouteData;
 use Sindri\Generator\Abstract\FileGenerator;
 use Sindri\Generator\Http\Contract\DataFileGeneratorContract;
 use Valkyrja\Http\Routing\Data\Contract\RouteContract;
+use Valkyrja\Http\Routing\Data\DynamicRoute;
 use Valkyrja\Http\Routing\Data\HttpRoutingData;
+use Valkyrja\Http\Routing\Data\Parameter;
+use Valkyrja\Http\Routing\Data\Route;
+use Valkyrja\Http\Routing\Processor\Contract\ProcessorContract;
+use Valkyrja\Http\Routing\Processor\Processor;
 
 /**
  * AST-based HTTP routing data file generator.
  *
- * Accepts PHP-Parser Expr nodes produced by HttpRouteAttributeReader and pretty-prints
- * them directly into the generated data class, bypassing any runtime app boot.
- *
- * Note: paths, dynamicPaths, and regexes are left empty — they can be computed
- * at runtime from the routes array when the collection is loaded.
+ * Accepts PHP-Parser Expr nodes produced by HttpRouteAttributeReader and the
+ * plain HttpRouteData objects used to derive paths, dynamicPaths, and regexes.
  */
 class AstHttpDataFileGenerator extends FileGenerator implements DataFileGeneratorContract
 {
     /**
-     * @param non-empty-string    $directory
-     * @param array<string, Expr> $routes
-     * @param non-empty-string    $namespace
-     * @param non-empty-string    $className
+     * @param non-empty-string             $directory
+     * @param array<string, Expr>          $routes
+     * @param array<string, HttpRouteData> $routeData
+     * @param non-empty-string             $namespace
+     * @param non-empty-string             $className
      */
     public function __construct(
         string $directory,
         protected array $routes,
+        protected array $routeData,
         protected string $namespace,
         string $className,
         protected PrettyPrinterAbstract $printer = new Standard(),
+        protected ProcessorContract $processor = new Processor(),
     ) {
         parent::__construct(directory: $directory, className: $className);
     }
@@ -59,6 +70,9 @@ class AstHttpDataFileGenerator extends FileGenerator implements DataFileGenerato
         $className   = $this->className;
         $routingData = HttpRoutingData::class;
         $routes      = $this->getRoutesAsContent();
+        $paths       = var_export($this->buildPaths(), true);
+        $dynamicPaths = var_export($this->buildDynamicPaths(), true);
+        $regexes     = var_export($this->buildRegexes(), true);
 
         return <<<PHP
             <?php
@@ -77,6 +91,9 @@ class AstHttpDataFileGenerator extends FileGenerator implements DataFileGenerato
                 {
                     parent::__construct(
                         routes: $routes,
+                        paths: $paths,
+                        dynamicPaths: $dynamicPaths,
+                        regexes: $regexes,
                     );
                 }
             }
@@ -103,7 +120,170 @@ class AstHttpDataFileGenerator extends FileGenerator implements DataFileGenerato
     }
 
     /**
+     * Build the paths map: method → path → route name (static routes only).
+     *
+     * @return array<string, array<string, string>>
+     */
+    protected function buildPaths(): array
+    {
+        $paths = [];
+
+        foreach ($this->routeData as $name => $data) {
+            if ($data->isDynamic) {
+                continue;
+            }
+
+            $path = $this->normalizePath($data->path);
+
+            foreach ($this->extractMethodNames($data->requestMethods) as $method) {
+                $paths[$method][$path] = $name;
+            }
+        }
+
+        return $paths;
+    }
+
+    /**
+     * Build the dynamicPaths map: method → path → route name (dynamic routes only).
+     *
+     * @return array<string, array<string, string>>
+     */
+    protected function buildDynamicPaths(): array
+    {
+        $dynamicPaths = [];
+
+        foreach ($this->routeData as $name => $data) {
+            if (! $data->isDynamic) {
+                continue;
+            }
+
+            $path = $this->normalizePath($data->path);
+
+            foreach ($this->extractMethodNames($data->requestMethods) as $method) {
+                $dynamicPaths[$method][$path] = $name;
+            }
+        }
+
+        return $dynamicPaths;
+    }
+
+    /**
+     * Build the regexes map: method → regex → route name (dynamic routes only).
+     *
+     * @return array<string, array<string, string>>
+     */
+    protected function buildRegexes(): array
+    {
+        $regexes = [];
+
+        foreach ($this->routeData as $name => $data) {
+            if (! $data->isDynamic || $data->parameters === []) {
+                continue;
+            }
+
+            $regex = $this->computeRegex($data);
+
+            if ($regex === '') {
+                continue;
+            }
+
+            foreach ($this->extractMethodNames($data->requestMethods) as $method) {
+                $regexes[$method][$regex] = $name;
+            }
+        }
+
+        return $regexes;
+    }
+
+    /**
+     * Compute the regex for a dynamic route by running it through the Processor.
+     */
+    protected function computeRegex(HttpRouteData $data): string
+    {
+        $parameters = [];
+
+        foreach ($data->parameters as $param) {
+            $parameters[] = $this->buildParameter($param);
+        }
+
+        $route = new DynamicRoute(
+            path: $data->path,
+            name: $data->name,
+            regex: '',
+            parameters: $parameters,
+            handler: static fn (): RouteContract => new Route(path: '/', name: '', handler: static fn () => null),
+        );
+
+        $processed = $this->processor->route($route);
+
+        if ($processed instanceof DynamicRoute) {
+            return $processed->getRegex();
+        }
+
+        return '';
+    }
+
+    /**
+     * Convert an HttpParameterData into a Parameter data object.
+     *
+     * When the regex is a class-constant reference like "Vendor\Regex::ALPHA", resolve it
+     * to its actual string value so the Processor can compute the correct route regex.
+     */
+    protected function buildParameter(HttpParameterData $data): Parameter
+    {
+        $regex = $data->regex;
+
+        if (str_contains($regex, '::') && defined($regex)) {
+            $resolved = constant($regex);
+
+            if (is_string($resolved)) {
+                $regex = $resolved;
+            }
+        }
+
+        return new Parameter(
+            name: $data->name,
+            regex: $regex,
+            isOptional: $data->isOptional,
+            shouldCapture: $data->shouldCapture,
+        );
+    }
+
+    /**
+     * Normalize a route path: ensure a leading slash and strip trailing slashes.
+     */
+    protected function normalizePath(string $path): string
+    {
+        return '/' . trim($path, '/');
+    }
+
+    /**
+     * Extract HTTP method name strings from "FQN::CASE" enum strings.
+     *
+     * @param string[] $requestMethods
+     *
+     * @return string[]
+     */
+    protected function extractMethodNames(array $requestMethods): array
+    {
+        $methods = [];
+
+        foreach ($requestMethods as $method) {
+            $pos = strrpos($method, '::');
+
+            if ($pos !== false) {
+                $methods[] = substr($method, $pos + 2);
+            }
+        }
+
+        return $methods;
+    }
+
+    /**
      * Pretty-print all routes into a PHP array literal string.
+     *
+     * For DynamicRoute expressions, injects the Processor-computed regex as a named arg
+     * because DynamicRoute::__construct() requires it.
      *
      * @return non-empty-string
      */
@@ -113,6 +293,17 @@ class AstHttpDataFileGenerator extends FileGenerator implements DataFileGenerato
         $routesContent = '';
 
         foreach ($this->routes as $key => $routeExpr) {
+            $data = $this->routeData[$key] ?? null;
+
+            if ($data !== null && $data->isDynamic && $routeExpr instanceof New_) {
+                $computedRegex  = $data->parameters !== [] ? $this->computeRegex($data) : '';
+                $routeExpr      = clone $routeExpr;
+                $routeExpr->args[] = new Arg(
+                    value: new String_($computedRegex),
+                    name: new Identifier('regex'),
+                );
+            }
+
             $routePhp       = $this->printer->prettyPrintExpr($routeExpr);
             $routesContent .= <<<PHP
                 '$key' => static fn (): \\$routeContract => $routePhp,
