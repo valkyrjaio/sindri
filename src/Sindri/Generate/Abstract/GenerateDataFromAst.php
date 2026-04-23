@@ -216,10 +216,6 @@ abstract class GenerateDataFromAst
      */
     protected function generateEventData(array $listenerProviders, ConfigResult $config, OutputContract $output): OutputContract
     {
-        if ($listenerProviders === []) {
-            return $output;
-        }
-
         $output = $output->withAddedMessages(
             new Message('Generating Event Data..........................'),
         )->writeMessages();
@@ -268,10 +264,6 @@ abstract class GenerateDataFromAst
      */
     protected function generateCliData(array $cliRouteProviders, ConfigResult $config, OutputContract $output): OutputContract
     {
-        if ($cliRouteProviders === []) {
-            return $output;
-        }
-
         $output = $output->withAddedMessages(
             new Message('Generating Cli Routes Data.....................'),
         )->writeMessages();
@@ -320,10 +312,6 @@ abstract class GenerateDataFromAst
      */
     protected function generateHttpData(array $httpRouteProviders, ConfigResult $config, OutputContract $output): OutputContract
     {
-        if ($httpRouteProviders === []) {
-            return $output;
-        }
-
         $output = $output->withAddedMessages(
             new Message('Generating Http Routes Data....................'),
         )->writeMessages();
