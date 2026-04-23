@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -25,11 +25,11 @@ use Sindri\Ast\Data\Contract\HttpParameterDataContract;
 readonly class HttpParameterData implements HttpParameterDataContract
 {
     /**
-     * @param string      $name          Parameter name
-     * @param string      $regex         Regex pattern for the parameter
-     * @param string|null $cast          "FQN::CASE" of the Cast value, or null
-     * @param bool        $isOptional    Whether the parameter is optional
-     * @param bool        $shouldCapture Whether the parameter value should be captured
+     * @param non-empty-string $name          Parameter name
+     * @param non-empty-string $regex         Regex pattern for the parameter
+     * @param string|null      $cast          "FQN::CASE" of the Cast value, or null
+     * @param bool             $isOptional    Whether the parameter is optional
+     * @param bool             $shouldCapture Whether the parameter value should be captured
      */
     public function __construct(
         public string $name,
