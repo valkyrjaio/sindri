@@ -15,7 +15,9 @@ namespace Sindri\Generator\Ast\Http;
 
 use Override;
 use PhpParser\Node\Arg;
+use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Scalar\String_;
@@ -66,13 +68,13 @@ class AstHttpDataFileGenerator extends FileGenerator implements DataFileGenerato
     #[Override]
     public function generateFileContents(): string
     {
-        $namespace   = $this->namespace;
-        $className   = $this->className;
-        $routingData = HttpRoutingData::class;
-        $routes      = $this->getRoutesAsContent();
-        $paths       = var_export($this->buildPaths(), true);
-        $dynamicPaths = var_export($this->buildDynamicPaths(), true);
-        $regexes     = var_export($this->buildRegexes(), true);
+        $namespace    = $this->namespace;
+        $className    = $this->className;
+        $routingData  = HttpRoutingData::class;
+        $routes       = $this->getRoutesAsContent();
+        $paths        = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildPaths()));
+        $dynamicPaths = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildDynamicPaths()));
+        $regexes      = $this->printer->prettyPrintExpr($this->buildNestedStringArrayExpr($this->buildRegexes()));
 
         return <<<PHP
             <?php
@@ -193,6 +195,28 @@ class AstHttpDataFileGenerator extends FileGenerator implements DataFileGenerato
         }
 
         return $regexes;
+    }
+
+    /**
+     * Build a nested string array expression: array<string, array<string, string>> → Array_ AST node.
+     *
+     * @param array<string, array<string, string>> $data
+     */
+    protected function buildNestedStringArrayExpr(array $data): Array_
+    {
+        $outerItems = [];
+
+        foreach ($data as $outerKey => $innerMap) {
+            $innerItems = [];
+
+            foreach ($innerMap as $innerKey => $value) {
+                $innerItems[] = new ArrayItem(new String_($value), new String_($innerKey));
+            }
+
+            $outerItems[] = new ArrayItem(new Array_($innerItems), new String_($outerKey));
+        }
+
+        return new Array_($outerItems);
     }
 
     /**
