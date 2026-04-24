@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Sindri\Generator\Ast\Http;
 
 use Override;
-use Sindri\Generator\Throwable\Exception\GeneratorUnreachableException;
 use PhpParser\Node\Arg;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
@@ -29,6 +28,7 @@ use Sindri\Ast\Data\HttpRouteData;
 use Sindri\Generator\Abstract\AstFileGenerator;
 use Sindri\Generator\Enum\GenerateStatus;
 use Sindri\Generator\Http\Contract\HttpDataFileGeneratorContract;
+use Sindri\Generator\Throwable\Exception\GeneratorUnreachableException;
 use Valkyrja\Http\Routing\Data\Contract\RouteContract;
 use Valkyrja\Http\Routing\Data\DynamicRoute;
 use Valkyrja\Http\Routing\Data\HttpRoutingData;
