@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Sindri\Tests\Unit\Ast;
 
 use PhpParser\Node\Expr;
-use Sindri\Ast\Data\HandlerData;
 use Sindri\Ast\Data\ListenerData;
 use Sindri\Ast\ListenerAttributeReader;
 use Sindri\Tests\Classes\Event\TestListenerClass;

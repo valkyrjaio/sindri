@@ -19,21 +19,21 @@ use Valkyrja\Http\Routing\Attribute\DynamicRoute;
 use Valkyrja\Http\Routing\Attribute\Parameter;
 use Valkyrja\Http\Routing\Attribute\Route;
 use Valkyrja\Http\Routing\Attribute\Route\Middleware;
-use Valkyrja\Http\Routing\Attribute\Route\Name as RouteName;
-use Valkyrja\Http\Routing\Attribute\Route\Path as RoutePath;
+use Valkyrja\Http\Routing\Attribute\Route\Name;
+use Valkyrja\Http\Routing\Attribute\Route\Path;
 use Valkyrja\Http\Routing\Attribute\Route\RequestMethod as RouteRequestMethod;
 use Valkyrja\Http\Routing\Attribute\Route\RequestStruct;
 use Valkyrja\Http\Routing\Attribute\Route\ResponseStruct;
 use Valkyrja\Http\Routing\Attribute\Route\RouteHandler;
 
-#[RoutePath('/api')]
-#[RouteName('api')]
+#[Path('/api')]
+#[Name('api')]
 class TestRichHttpControllerClass
 {
     // Route with class-level path/name prefix + method-level Path and Name suffix
     #[Route(path: '/users', name: 'users.list')]
-    #[RoutePath('/list')]
-    #[RouteName('paginated')]
+    #[Path('/list')]
+    #[Name('paginated')]
     public function listUsers(): void
     {
     }

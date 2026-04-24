@@ -21,8 +21,8 @@ use Sindri\Generator\Ast\Http\AstHttpDataFileGenerator;
 use Sindri\Generator\Enum\GenerateStatus;
 use Sindri\Tests\Classes\Http\TestRegexConstantsClass;
 use Sindri\Tests\Unit\Abstract\TestCase;
-use Valkyrja\Http\Routing\Data\Parameter as ParameterModel;
-use Valkyrja\Http\Routing\Data\Route as RouteModel;
+use Valkyrja\Http\Routing\Data\Parameter;
+use Valkyrja\Http\Routing\Data\Route;
 use Valkyrja\Http\Routing\Processor\Contract\ProcessorContract;
 
 final class AstHttpDataFileGeneratorTest extends TestCase
@@ -172,7 +172,7 @@ final class AstHttpDataFileGeneratorTest extends TestCase
         $mockProcessor = $this->createMock(ProcessorContract::class);
         $mockProcessor->expects($this->once())
             ->method('route')
-            ->willReturn(new RouteModel(
+            ->willReturn(new Route(
                 path: '/static',
                 name: 'test',
                 handler: static fn (): never => throw new LogicException('unreachable'),
@@ -238,7 +238,7 @@ final class AstHttpDataFileGeneratorTest extends TestCase
     public function testBuildParameterResolvesDefinedClassConstantRegex(): void
     {
         $generator = new class extends AstHttpDataFileGenerator {
-            public function callBuildParameter(HttpParameterData $data): ParameterModel
+            public function callBuildParameter(HttpParameterData $data): Parameter
             {
                 return $this->buildParameter($data);
             }

@@ -18,7 +18,7 @@ use Valkyrja\Cli\Routing\Attribute\ArgumentParameter;
 use Valkyrja\Cli\Routing\Attribute\OptionParameter;
 use Valkyrja\Cli\Routing\Attribute\Route;
 use Valkyrja\Cli\Routing\Attribute\Route\Middleware;
-use Valkyrja\Cli\Routing\Attribute\Route\Name as RouteName;
+use Valkyrja\Cli\Routing\Attribute\Route\Name;
 use Valkyrja\Cli\Routing\Attribute\Route\RouteHandler;
 use Valkyrja\Cli\Routing\Enum\ArgumentMode;
 
@@ -33,7 +33,7 @@ class TestRichCliControllerClass
 
     // Route with Name override (covers updateName body)
     #[Route(name: 'original:name', description: 'Route with name override')]
-    #[RouteName('overridden:name')]
+    #[Name('overridden:name')]
     public function namedAction(): void
     {
     }

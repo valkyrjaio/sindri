@@ -13,11 +13,8 @@ declare(strict_types=1);
 
 namespace Sindri\Tests\Unit\Ast;
 
-use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr\Array_;
-use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Identifier;
-use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Return_;
 use Sindri\Ast\ServiceProviderReader;

@@ -13,13 +13,14 @@ declare(strict_types=1);
 
 namespace Sindri\Tests\Unit\Generate;
 
+use Sindri\Ast\ConfigReader;
 use Override;
 use Sindri\Ast\Result\ComponentProviderResult;
 use Sindri\Ast\Result\ConfigResult;
 use Sindri\Generate\Abstract\GenerateDataFromAst;
 use Sindri\Generator\Enum\GenerateStatus;
-use Sindri\Tests\Classes\Cli\Provider\TestMissingControllerProviderClass as CliTestMissingControllerProviderClass;
-use Sindri\Tests\Classes\Cli\Provider\TestRouteProviderClass as CliTestRouteProviderClass;
+use Sindri\Tests\Classes\Cli\Provider\TestMissingControllerProviderClass;
+use Sindri\Tests\Classes\Cli\Provider\TestRouteProviderClass;
 use Sindri\Tests\Classes\Event\Provider\TestListenerProviderClass;
 use Sindri\Tests\Classes\Event\Provider\TestMissingListenerProviderClass;
 use Sindri\Tests\Classes\Http\Provider\TestMissingControllerProviderClass as HttpTestMissingControllerProviderClass;
@@ -170,7 +171,7 @@ final class GenerateDataFromAstTest extends TestCase
             public function run(): OutputContract
             {
                 // Swap config reader for one that returns our pre-built config
-                $this->configReader = new class($this->staticConfig) extends \Sindri\Ast\ConfigReader {
+                $this->configReader = new class($this->staticConfig) extends ConfigReader {
                     public function __construct(private readonly ConfigResult $result)
                     {
                     }
@@ -290,7 +291,7 @@ final class GenerateDataFromAstTest extends TestCase
         );
 
         $result = $walker->callGenerateCliData(
-            [CliTestRouteProviderClass::class],
+            [TestRouteProviderClass::class],
             $config,
             $output,
         );
@@ -485,7 +486,7 @@ final class GenerateDataFromAstTest extends TestCase
         );
 
         $result = $walker->callGenerateCliData(
-            [CliTestMissingControllerProviderClass::class],
+            [TestMissingControllerProviderClass::class],
             $config,
             $output,
         );

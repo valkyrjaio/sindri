@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sindri\Tests\Unit\Ast;
 
+use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
@@ -20,7 +21,6 @@ use Sindri\Ast\CliRouteAttributeReader;
 use Sindri\Ast\Data\CliRouteData;
 use Sindri\Ast\Data\HandlerData;
 use Sindri\Tests\Classes\Cli\Controller\TestCliControllerClass;
-use Sindri\Tests\Classes\Cli\Middleware\TestCliMiddlewareClass;
 use Sindri\Tests\Unit\Abstract\TestCase;
 
 final class CliRouteAttributeReaderTest extends TestCase
@@ -258,7 +258,7 @@ final class CliRouteAttributeReaderTest extends TestCase
         };
 
         // Construct an Array_ with a null item to trigger the `continue` branch
-        $array        = new Array_([null, new ArrayItem(new \PhpParser\Node\Scalar\String_('valid'))]);
+        $array        = new Array_([null, new ArrayItem(new String_('valid'))]);
         $result       = $reader->callExtractStringListFromArrayExpr($array);
 
         self::assertSame(['valid'], $result);
