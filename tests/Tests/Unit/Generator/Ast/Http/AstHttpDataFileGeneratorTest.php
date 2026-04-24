@@ -13,12 +13,17 @@ declare(strict_types=1);
 
 namespace Sindri\Tests\Unit\Generator\Ast\Http;
 
+use LogicException;
 use PhpParser\Node\Scalar\String_;
 use Sindri\Ast\Data\HttpParameterData;
 use Sindri\Ast\Data\HttpRouteData;
 use Sindri\Generator\Ast\Http\AstHttpDataFileGenerator;
 use Sindri\Generator\Enum\GenerateStatus;
+use Sindri\Tests\Classes\Http\TestRegexConstantsClass;
 use Sindri\Tests\Unit\Abstract\TestCase;
+use Valkyrja\Http\Routing\Data\Parameter as ParameterModel;
+use Valkyrja\Http\Routing\Data\Route as RouteModel;
+use Valkyrja\Http\Routing\Processor\Contract\ProcessorContract;
 
 final class AstHttpDataFileGeneratorTest extends TestCase
 {
@@ -156,5 +161,92 @@ final class AstHttpDataFileGeneratorTest extends TestCase
 
         self::assertSame(GenerateStatus::SUCCESS, $status);
         self::assertStringContainsString('/items/{id}', $contents);
+    }
+
+    // -----------------------------------------------------------------------
+    // computeRegex — returns '' when processor returns non-DynamicRoute (line 264)
+    // -----------------------------------------------------------------------
+
+    public function testComputeRegexReturnsEmptyWhenProcessorReturnsNonDynamicRoute(): void
+    {
+        $mockProcessor = $this->createMock(ProcessorContract::class);
+        $mockProcessor->expects($this->once())
+            ->method('route')
+            ->willReturn(new RouteModel(
+                path: '/static',
+                name: 'test',
+                handler: static fn (): never => throw new LogicException('unreachable'),
+            ));
+
+        $generator = new class ($mockProcessor) extends AstHttpDataFileGenerator {
+            public function __construct(ProcessorContract $processor)
+            {
+                parent::__construct(processor: $processor);
+            }
+
+            public function callComputeRegex(HttpRouteData $data): string
+            {
+                return $this->computeRegex($data);
+            }
+        };
+
+        $parameter = new HttpParameterData(name: 'id', regex: '[0-9]+');
+        $routeData = new HttpRouteData(path: '/items/{id}', name: 'items', isDynamic: true, parameters: [$parameter]);
+
+        $result = $generator->callComputeRegex($routeData);
+
+        self::assertSame('', $result);
+    }
+
+    // -----------------------------------------------------------------------
+    // buildRegexes — skips entry when computeRegex returns '' (line 206)
+    // -----------------------------------------------------------------------
+
+    public function testBuildRegexesSkipsEntryWhenComputeRegexReturnsEmpty(): void
+    {
+        $generator = new class extends AstHttpDataFileGenerator {
+            protected function computeRegex(HttpRouteData $data): string
+            {
+                return '';
+            }
+
+            /** @return array<string, array<string, string>> */
+            public function callBuildRegexes(array $routeData): array
+            {
+                return $this->buildRegexes($routeData);
+            }
+        };
+
+        $parameter = new HttpParameterData(name: 'id', regex: '[0-9]+');
+        $routeData = new HttpRouteData(
+            path: '/items/{id}',
+            name: 'items.show',
+            requestMethods: ['Valkyrja\\Http\\Message\\Enum\\RequestMethod::GET'],
+            isDynamic: true,
+            parameters: [$parameter],
+        );
+
+        $result = $generator->callBuildRegexes(['items.show' => $routeData]);
+
+        self::assertSame([], $result);
+    }
+
+    // -----------------------------------------------------------------------
+    // buildParameter — resolves defined class constant regex (lines 279, 281, 282)
+    // -----------------------------------------------------------------------
+
+    public function testBuildParameterResolvesDefinedClassConstantRegex(): void
+    {
+        $generator = new class extends AstHttpDataFileGenerator {
+            public function callBuildParameter(HttpParameterData $data): ParameterModel
+            {
+                return $this->buildParameter($data);
+            }
+        };
+
+        $data   = new HttpParameterData(name: 'slug', regex: TestRegexConstantsClass::class . '::ALPHA_REGEX');
+        $result = $generator->callBuildParameter($data);
+
+        self::assertSame('[a-z]+', $result->getRegex());
     }
 }

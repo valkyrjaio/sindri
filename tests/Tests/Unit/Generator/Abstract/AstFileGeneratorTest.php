@@ -76,9 +76,24 @@ final class AstFileGeneratorTest extends TestCase
             }
         };
 
-        // Suppress the expected file_put_contents warning — the generator catches the
-        // resulting Throwable internally and returns FAILURE, which is what we assert.
+        // Suppress the expected file_put_contents warning — returns FAILURE via $result !== false check.
         $status = @$generator->write($directory, $className, '<?php // test');
+
+        self::assertSame(GenerateStatus::FAILURE, $status);
+    }
+
+    public function testWriteFileCatchesThrowableFromNullByteInPath(): void
+    {
+        $generator = new class extends AstFileGenerator {
+            public function write(string $directory, string $className, string $data): GenerateStatus
+            {
+                return $this->writeFile($directory, $className, $data);
+            }
+        };
+
+        // Null byte in className produces a path that causes file_put_contents to throw
+        // ValueError, which is caught by catch (Throwable) at line 37 → returns FAILURE.
+        $status = $generator->write('/tmp', "NullByte\0Class", '<?php // test');
 
         self::assertSame(GenerateStatus::FAILURE, $status);
     }

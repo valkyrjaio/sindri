@@ -13,7 +13,12 @@ declare(strict_types=1);
 
 namespace Sindri\Tests\Unit\Ast;
 
+use PhpParser\Node\Arg;
+use PhpParser\Node\Expr\Array_;
+use PhpParser\Node\Identifier;
+use PhpParser\Node\Stmt\ClassMethod;
 use Sindri\Ast\HttpRouteAttributeReader;
+use Sindri\Tests\Classes\Http\Controller\TestHttpControllerClass;
 use Sindri\Tests\Classes\Http\Middleware\TestHttpMiddlewareClass;
 use Sindri\Tests\Unit\Abstract\TestCase;
 
@@ -22,6 +27,7 @@ final class HttpRouteAttributeReaderTest extends TestCase
     private static string $fixtureFile;
     private static string $richFixtureFile;
     private static string $badFixtureFile;
+    private static string $noNsFixtureFile;
 
     public static function setUpBeforeClass(): void
     {
@@ -39,6 +45,11 @@ final class HttpRouteAttributeReaderTest extends TestCase
         $badPath = realpath(__DIR__ . '/../../Classes/Http/Controller/TestBadHttpControllerClass.php');
 
         self::$badFixtureFile = $badPath;
+
+        /** @var non-empty-string $noNsPath */
+        $noNsPath = realpath(__DIR__ . '/../../Classes/Http/Controller/TestNoNsHttpControllerClass.php');
+
+        self::$noNsFixtureFile = $noNsPath;
     }
 
     // -----------------------------------------------------------------------
@@ -97,6 +108,17 @@ final class HttpRouteAttributeReaderTest extends TestCase
 
         self::assertSame([], $result->routes);
         self::assertSame([], $result->routeData);
+    }
+
+    // -----------------------------------------------------------------------
+    // No-namespace fixture — covers the $namespace === '' branch (line 83)
+    // -----------------------------------------------------------------------
+
+    public function testReadFileWithNoNamespaceClassExtractsRoutes(): void
+    {
+        $result = new HttpRouteAttributeReader()->readFile(self::$noNsFixtureFile);
+
+        self::assertArrayHasKey('no-ns.route', $result->routes);
     }
 
     // -----------------------------------------------------------------------
@@ -221,6 +243,110 @@ final class HttpRouteAttributeReaderTest extends TestCase
     }
 
     // -----------------------------------------------------------------------
+    // Rich fixture tests — inline middleware arrays in #[Route] (lines 204-220)
+    // -----------------------------------------------------------------------
+
+    public function testReadRichFileExtractsInlineRouteMatchedMiddleware(): void
+    {
+        $result = new HttpRouteAttributeReader()->readFile(self::$richFixtureFile);
+
+        $data = $result->routeData['api.inline.middleware'];
+
+        self::assertContains(TestHttpMiddlewareClass::class, $data->routeMatchedMiddleware);
+    }
+
+    public function testReadRichFileExtractsInlineRouteDispatchedMiddleware(): void
+    {
+        $result = new HttpRouteAttributeReader()->readFile(self::$richFixtureFile);
+
+        $data = $result->routeData['api.inline.middleware'];
+
+        self::assertContains(TestHttpMiddlewareClass::class, $data->routeDispatchedMiddleware);
+    }
+
+    public function testReadRichFileExtractsInlineThrowableCaughtMiddleware(): void
+    {
+        $result = new HttpRouteAttributeReader()->readFile(self::$richFixtureFile);
+
+        $data = $result->routeData['api.inline.middleware'];
+
+        self::assertContains(TestHttpMiddlewareClass::class, $data->throwableCaughtMiddleware);
+    }
+
+    public function testReadRichFileExtractsInlineSendingResponseMiddleware(): void
+    {
+        $result = new HttpRouteAttributeReader()->readFile(self::$richFixtureFile);
+
+        $data = $result->routeData['api.inline.middleware'];
+
+        self::assertContains(TestHttpMiddlewareClass::class, $data->sendingResponseMiddleware);
+    }
+
+    public function testReadRichFileExtractsInlineTerminatedMiddleware(): void
+    {
+        $result = new HttpRouteAttributeReader()->readFile(self::$richFixtureFile);
+
+        $data = $result->routeData['api.inline.middleware'];
+
+        self::assertContains(TestHttpMiddlewareClass::class, $data->terminatedMiddleware);
+    }
+
+    // -----------------------------------------------------------------------
+    // Rich fixture tests — RouteHandler attribute (lines 330-333)
+    // -----------------------------------------------------------------------
+
+    public function testReadRichFileExtractsCustomHandlerFromRouteHandlerAttr(): void
+    {
+        $result = new HttpRouteAttributeReader()->readFile(self::$richFixtureFile);
+
+        $data = $result->routeData['api.custom.handler'];
+
+        self::assertSame(TestHttpControllerClass::class, $data->handler->class);
+        self::assertSame('staticAction', $data->handler->method);
+    }
+
+    // -----------------------------------------------------------------------
+    // Rich fixture tests — inline requestMethods in #[Route] (line 357)
+    // -----------------------------------------------------------------------
+
+    public function testReadRichFileExtractsInlineRequestMethodsFromRouteAttr(): void
+    {
+        $result = new HttpRouteAttributeReader()->readFile(self::$richFixtureFile);
+
+        $data = $result->routeData['api.inline.methods'];
+
+        self::assertContains('Valkyrja\\Http\\Message\\Enum\\RequestMethod::POST', $data->requestMethods);
+    }
+
+    // -----------------------------------------------------------------------
+    // Rich fixture tests — enum-case regex in Parameter (line 693)
+    // -----------------------------------------------------------------------
+
+    public function testReadRichFileExtractsParameterWithEnumCaseRegex(): void
+    {
+        $result = new HttpRouteAttributeReader()->readFile(self::$richFixtureFile);
+
+        $data = $result->routeData['api.enum.method'];
+
+        self::assertCount(1, $data->parameters);
+        self::assertStringContainsString('::', $data->parameters[0]->regex);
+    }
+
+    // -----------------------------------------------------------------------
+    // Rich fixture tests — Parameter with non-null cast (line 702)
+    // -----------------------------------------------------------------------
+
+    public function testReadRichFileExtractsParameterWithCast(): void
+    {
+        $result = new HttpRouteAttributeReader()->readFile(self::$richFixtureFile);
+
+        $data = $result->routeData['api.cast.param'];
+
+        self::assertCount(1, $data->parameters);
+        self::assertNotNull($data->parameters[0]->cast);
+    }
+
+    // -----------------------------------------------------------------------
     // Bad fixture tests — skip/continue branches
     // -----------------------------------------------------------------------
 
@@ -231,5 +357,58 @@ final class HttpRouteAttributeReaderTest extends TestCase
 
         // The route itself is valid; only the middleware arg is bad and gets skipped
         self::assertArrayHasKey('bad.non-string-middleware', $result->routes);
+    }
+
+    public function testReadBadFileSkipsRouteWithEmptyName(): void
+    {
+        // #[Route(name: '')] causes buildRouteData to return null (line 179)
+        $result = new HttpRouteAttributeReader()->readFile(self::$badFixtureFile);
+
+        self::assertArrayNotHasKey('', $result->routes);
+    }
+
+    public function testReadBadFileSkipsNonNewExpressionInInlineParameters(): void
+    {
+        // parameters: ['not-a-parameter'] — a String_ node (not New_) → buildParameterFromExpr returns null (line 574)
+        $result = new HttpRouteAttributeReader()->readFile(self::$badFixtureFile);
+
+        self::assertArrayHasKey('bad.non-new', $result->routes);
+        self::assertSame([], $result->routeData['bad.non-new']->parameters);
+    }
+
+    public function testReadBadFileSkipsParameterWithEmptyName(): void
+    {
+        // #[Parameter(name: '')] → buildParameterData returns null (line 598)
+        $result = new HttpRouteAttributeReader()->readFile(self::$badFixtureFile);
+
+        self::assertArrayHasKey('bad.empty-param', $result->routes);
+        self::assertSame([], $result->routeData['bad.empty-param']->parameters);
+    }
+
+    // -----------------------------------------------------------------------
+    // Direct AST test — null item in inline parameters array (line 528)
+    // -----------------------------------------------------------------------
+
+    public function testUpdateParametersSkipsNullItemsInInlineArray(): void
+    {
+        $reader = new class extends HttpRouteAttributeReader {
+            /** @return array<mixed> */
+            public function callUpdateParameters(array $args, ClassMethod $method, array $useMap, string $namespace, string $currentClass): array
+            {
+                return $this->updateParameters($args, $method, $useMap, $namespace, $currentClass);
+            }
+        };
+
+        $method         = new ClassMethod(new Identifier('testAction'));
+        $method->stmts  = [];
+        $method->params = [];
+
+        // Inline parameters array containing a null item (as PHP-Parser may produce internally)
+        $nullItemArray = new Array_([null]);
+        $args          = [new Arg(value: $nullItemArray, name: new Identifier('parameters'))];
+
+        $result = $reader->callUpdateParameters($args, $method, [], 'Test', 'Test\\TestClass');
+
+        self::assertSame([], $result);
     }
 }

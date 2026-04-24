@@ -24,6 +24,7 @@ use Valkyrja\Http\Routing\Attribute\Route\Path as RoutePath;
 use Valkyrja\Http\Routing\Attribute\Route\RequestMethod as RouteRequestMethod;
 use Valkyrja\Http\Routing\Attribute\Route\RequestStruct;
 use Valkyrja\Http\Routing\Attribute\Route\ResponseStruct;
+use Valkyrja\Http\Routing\Attribute\Route\RouteHandler;
 
 #[RoutePath('/api')]
 #[RouteName('api')]
@@ -68,6 +69,47 @@ class TestRichHttpControllerClass
     // Dynamic route with PHP method-parameter-level #[Parameter]
     #[DynamicRoute(path: '/products/{slug}', name: 'products.show', parameters: [])]
     public function showProduct(#[Parameter(name: 'slug', regex: '[a-z-]+')] string $slug): void
+    {
+    }
+
+    // Route with all 5 inline middleware arrays directly in #[Route] (covers lines 204-220)
+    #[Route(
+        path: '/inline/middleware',
+        name: 'inline.middleware',
+        routeMatchedMiddleware: [TestHttpMiddlewareClass::class],
+        routeDispatchedMiddleware: [TestHttpMiddlewareClass::class],
+        throwableCaughtMiddleware: [TestHttpMiddlewareClass::class],
+        sendingResponseMiddleware: [TestHttpMiddlewareClass::class],
+        terminatedMiddleware: [TestHttpMiddlewareClass::class],
+    )]
+    public function inlineMiddlewareAction(): void
+    {
+    }
+
+    // Route with #[RouteHandler] attribute (covers updateHandler lines 330-333)
+    #[Route(path: '/custom/handler', name: 'custom.handler')]
+    #[RouteHandler([TestHttpControllerClass::class, 'staticAction'])]
+    public function customHandlerAction(): void
+    {
+    }
+
+    // Route with inline requestMethods array in #[Route] itself (covers line 357)
+    #[Route(path: '/inline/methods', name: 'inline.methods', requestMethods: [RequestMethod::POST])]
+    public function inlineRequestMethodsAction(): void
+    {
+    }
+
+    // Dynamic route with Parameter using enum-case regex (covers buildParameterExpr line 693)
+    #[DynamicRoute(path: '/enum/{method}', name: 'enum.method')]
+    #[Parameter(name: 'method', regex: RequestMethod::GET)]
+    public function enumRegexParamAction(): void
+    {
+    }
+
+    // Dynamic route with Parameter having a non-null cast (covers buildParameterExpr line 702)
+    #[DynamicRoute(path: '/cast/{id}', name: 'cast.param')]
+    #[Parameter(name: 'id', regex: '[0-9]+', cast: TestHttpMiddlewareClass::class)]
+    public function castParamAction(): void
     {
     }
 }
