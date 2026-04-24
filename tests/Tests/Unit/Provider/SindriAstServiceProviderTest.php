@@ -14,17 +14,23 @@ declare(strict_types=1);
 namespace Sindri\Tests\Unit\Provider;
 
 use Sindri\Ast\CliRouteAttributeReader;
+use Sindri\Ast\CliRouteParameterReader;
 use Sindri\Ast\ComponentProviderReader;
 use Sindri\Ast\ConfigReader;
 use Sindri\Ast\Contract\CliRouteAttributeReaderContract;
+use Sindri\Ast\Contract\CliRouteParameterReaderContract;
 use Sindri\Ast\Contract\ComponentProviderReaderContract;
 use Sindri\Ast\Contract\ConfigReaderContract;
 use Sindri\Ast\Contract\HttpRouteAttributeReaderContract;
+use Sindri\Ast\Contract\HttpRouteMiddlewareReaderContract;
+use Sindri\Ast\Contract\HttpRouteParameterReaderContract;
 use Sindri\Ast\Contract\ListenerAttributeReaderContract;
 use Sindri\Ast\Contract\ListenerProviderReaderContract;
 use Sindri\Ast\Contract\RouteProviderReaderContract;
 use Sindri\Ast\Contract\ServiceProviderReaderContract;
 use Sindri\Ast\HttpRouteAttributeReader;
+use Sindri\Ast\HttpRouteMiddlewareReader;
+use Sindri\Ast\HttpRouteParameterReader;
 use Sindri\Ast\ListenerAttributeReader;
 use Sindri\Ast\ListenerProviderReader;
 use Sindri\Ast\RouteProviderReader;
@@ -43,11 +49,11 @@ use Valkyrja\Container\Manager\Contract\ContainerContract;
 
 final class SindriAstServiceProviderTest extends TestCase
 {
-    public function testPublishersReturnsArrayWithTwelveEntries(): void
+    public function testPublishersReturnsArrayWithFifteenEntries(): void
     {
         $publishers = SindriAstServiceProvider::publishers();
 
-        self::assertCount(12, $publishers);
+        self::assertCount(15, $publishers);
     }
 
     public function testPublishersContainsCliRouteAttributeReaderContract(): void
@@ -69,6 +75,27 @@ final class SindriAstServiceProviderTest extends TestCase
         $publishers = SindriAstServiceProvider::publishers();
 
         self::assertArrayHasKey(ConfigReaderContract::class, $publishers);
+    }
+
+    public function testPublishersContainsCliRouteParameterReaderContract(): void
+    {
+        $publishers = SindriAstServiceProvider::publishers();
+
+        self::assertArrayHasKey(CliRouteParameterReaderContract::class, $publishers);
+    }
+
+    public function testPublishersContainsHttpRouteMiddlewareReaderContract(): void
+    {
+        $publishers = SindriAstServiceProvider::publishers();
+
+        self::assertArrayHasKey(HttpRouteMiddlewareReaderContract::class, $publishers);
+    }
+
+    public function testPublishersContainsHttpRouteParameterReaderContract(): void
+    {
+        $publishers = SindriAstServiceProvider::publishers();
+
+        self::assertArrayHasKey(HttpRouteParameterReaderContract::class, $publishers);
     }
 
     public function testPublishersContainsHttpRouteAttributeReaderContract(): void
@@ -137,6 +164,8 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishCliRouteAttributeReaderRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
+        $container->method('getSingleton')
+            ->willReturn(new CliRouteParameterReader());
         $container->expects($this->once())
             ->method('setSingleton')
             ->with(
@@ -173,9 +202,53 @@ final class SindriAstServiceProviderTest extends TestCase
         SindriAstServiceProvider::publishConfigReader($container);
     }
 
+    public function testPublishCliRouteParameterReaderRegistersInstance(): void
+    {
+        $container = $this->createMock(ContainerContract::class);
+        $container->expects($this->once())
+            ->method('setSingleton')
+            ->with(
+                CliRouteParameterReaderContract::class,
+                self::isInstanceOf(CliRouteParameterReader::class)
+            );
+
+        SindriAstServiceProvider::publishCliRouteParameterReader($container);
+    }
+
+    public function testPublishHttpRouteMiddlewareReaderRegistersInstance(): void
+    {
+        $container = $this->createMock(ContainerContract::class);
+        $container->expects($this->once())
+            ->method('setSingleton')
+            ->with(
+                HttpRouteMiddlewareReaderContract::class,
+                self::isInstanceOf(HttpRouteMiddlewareReader::class)
+            );
+
+        SindriAstServiceProvider::publishHttpRouteMiddlewareReader($container);
+    }
+
+    public function testPublishHttpRouteParameterReaderRegistersInstance(): void
+    {
+        $container = $this->createMock(ContainerContract::class);
+        $container->expects($this->once())
+            ->method('setSingleton')
+            ->with(
+                HttpRouteParameterReaderContract::class,
+                self::isInstanceOf(HttpRouteParameterReader::class)
+            );
+
+        SindriAstServiceProvider::publishHttpRouteParameterReader($container);
+    }
+
     public function testPublishHttpRouteAttributeReaderRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
+        $container->method('getSingleton')
+            ->willReturnMap([
+                [HttpRouteParameterReaderContract::class, new HttpRouteParameterReader()],
+                [HttpRouteMiddlewareReaderContract::class, new HttpRouteMiddlewareReader()],
+            ]);
         $container->expects($this->once())
             ->method('setSingleton')
             ->with(
