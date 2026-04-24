@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sindri\Tests\Unit\Provider;
 
 use Sindri\Ast\CliRouteAttributeReader;
+use Sindri\Ast\CliRouteParameterReader;
 use Sindri\Ast\ComponentProviderReader;
 use Sindri\Ast\ConfigReader;
 use Sindri\Ast\Contract\CliRouteAttributeReaderContract;
@@ -25,6 +26,8 @@ use Sindri\Ast\Contract\ListenerProviderReaderContract;
 use Sindri\Ast\Contract\RouteProviderReaderContract;
 use Sindri\Ast\Contract\ServiceProviderReaderContract;
 use Sindri\Ast\HttpRouteAttributeReader;
+use Sindri\Ast\HttpRouteMiddlewareReader;
+use Sindri\Ast\HttpRouteParameterReader;
 use Sindri\Ast\ListenerAttributeReader;
 use Sindri\Ast\ListenerProviderReader;
 use Sindri\Ast\RouteProviderReader;
@@ -39,57 +42,41 @@ use Sindri\Generator\Container\Contract\ContainerDataFileGeneratorContract;
 use Sindri\Generator\Event\Contract\EventDataFileGeneratorContract;
 use Sindri\Generator\Http\Contract\HttpDataFileGeneratorContract;
 use Sindri\Provider\SindriCommandServiceProvider;
-use Sindri\Tests\Unit\Abstract\TestCase;
 use Valkyrja\Cli\Interaction\Output\Factory\Contract\OutputFactoryContract;
 use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
-use Valkyrja\Container\Manager\Contract\ContainerContract;
+use Valkyrja\PhpUnit\Abstract\ServiceProviderTestCase;
 
-final class SindriCommandServiceProviderTest extends TestCase
+final class SindriCommandServiceProviderTest extends ServiceProviderTestCase
 {
-    public function testPublishersReturnsArrayWithOneEntry(): void
-    {
-        $publishers = SindriCommandServiceProvider::publishers();
+    /** @inheritDoc */
+    protected static string $provider = SindriCommandServiceProvider::class;
 
-        self::assertCount(1, $publishers);
+    public function testExpectedPublishers(): void
+    {
+        self::assertArrayHasKey(GenerateDataFromConfigCommand::class, SindriCommandServiceProvider::publishers());
     }
 
-    public function testPublishersContainsGenerateDataFromConfigCommand(): void
+    public function testPublishGenerateDataFromConfigCommand(): void
     {
-        $publishers = SindriCommandServiceProvider::publishers();
+        $container = $this->container;
+        $container->setSingleton(RouteContract::class, self::createStub(RouteContract::class));
+        $container->setSingleton(OutputFactoryContract::class, self::createStub(OutputFactoryContract::class));
+        $container->setSingleton(ConfigReaderContract::class, new ConfigReader());
+        $container->setSingleton(ComponentProviderReaderContract::class, new ComponentProviderReader());
+        $container->setSingleton(RouteProviderReaderContract::class, new RouteProviderReader());
+        $container->setSingleton(ListenerProviderReaderContract::class, new ListenerProviderReader());
+        $container->setSingleton(ServiceProviderReaderContract::class, new ServiceProviderReader());
+        $container->setSingleton(CliRouteAttributeReaderContract::class, new CliRouteAttributeReader(parameterReader: new CliRouteParameterReader()));
+        $container->setSingleton(HttpRouteAttributeReaderContract::class, new HttpRouteAttributeReader(parameterReader: new HttpRouteParameterReader(), middlewareReader: new HttpRouteMiddlewareReader()));
+        $container->setSingleton(ListenerAttributeReaderContract::class, new ListenerAttributeReader());
+        $container->setSingleton(ContainerDataFileGeneratorContract::class, new AstContainerDataFileGenerator());
+        $container->setSingleton(EventDataFileGeneratorContract::class, new AstEventDataFileGenerator());
+        $container->setSingleton(CliDataFileGeneratorContract::class, new AstCliDataFileGenerator());
+        $container->setSingleton(HttpDataFileGeneratorContract::class, new AstHttpDataFileGenerator());
 
-        self::assertArrayHasKey(GenerateDataFromConfigCommand::class, $publishers);
-    }
+        $callback = SindriCommandServiceProvider::publishers()[GenerateDataFromConfigCommand::class];
+        $callback($container);
 
-    public function testPublishGenerateDataFromConfigCommandRegistersInstance(): void
-    {
-        $singletons = [
-            RouteContract::class                      => self::createStub(RouteContract::class),
-            OutputFactoryContract::class              => self::createStub(OutputFactoryContract::class),
-            ConfigReaderContract::class               => new ConfigReader(),
-            ComponentProviderReaderContract::class    => new ComponentProviderReader(),
-            RouteProviderReaderContract::class        => new RouteProviderReader(),
-            ListenerProviderReaderContract::class     => new ListenerProviderReader(),
-            ServiceProviderReaderContract::class      => new ServiceProviderReader(),
-            CliRouteAttributeReaderContract::class    => new CliRouteAttributeReader(),
-            HttpRouteAttributeReaderContract::class   => new HttpRouteAttributeReader(),
-            ListenerAttributeReaderContract::class    => new ListenerAttributeReader(),
-            ContainerDataFileGeneratorContract::class => new AstContainerDataFileGenerator(),
-            EventDataFileGeneratorContract::class     => new AstEventDataFileGenerator(),
-            CliDataFileGeneratorContract::class       => new AstCliDataFileGenerator(),
-            HttpDataFileGeneratorContract::class      => new AstHttpDataFileGenerator(),
-        ];
-
-        $container = $this->createMock(ContainerContract::class);
-        $container->method('getSingleton')->willReturnCallback(
-            static fn (string $id): object => $singletons[$id]
-        );
-        $container->expects($this->once())
-            ->method('setSingleton')
-            ->with(
-                GenerateDataFromConfigCommand::class,
-                self::isInstanceOf(GenerateDataFromConfigCommand::class)
-            );
-
-        SindriCommandServiceProvider::publishGenerateDataFromConfigCommand($container);
+        self::assertInstanceOf(GenerateDataFromConfigCommand::class, $container->getSingleton(GenerateDataFromConfigCommand::class));
     }
 }
