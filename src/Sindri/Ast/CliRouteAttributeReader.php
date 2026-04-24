@@ -28,7 +28,7 @@ use Valkyrja\Cli\Middleware\Contract\RouteMatchedMiddlewareContract;
 use Valkyrja\Cli\Middleware\Contract\ThrowableCaughtMiddlewareContract;
 use Valkyrja\Cli\Routing\Attribute\Route;
 use Valkyrja\Cli\Routing\Attribute\Route\Middleware;
-use Valkyrja\Cli\Routing\Attribute\Route\Name as RouteName;
+use Valkyrja\Cli\Routing\Attribute\Route\Name;
 use Valkyrja\Cli\Routing\Attribute\Route\RouteHandler;
 use Valkyrja\Cli\Routing\Data\Route as RouteModel;
 
@@ -141,7 +141,7 @@ class CliRouteAttributeReader extends RouteAttributeReader implements CliRouteAt
         string $namespace,
         string $currentClass,
     ): string {
-        foreach ($this->findAttributesOnNode($method, RouteName::class, $useMap, $namespace) as $attr) {
+        foreach ($this->findAttributesOnNode($method, Name::class, $useMap, $namespace) as $attr) {
             $override = $this->extractExprValue($this->getAttrArg($attr->args, 'value', 0), $useMap, $namespace, $currentClass);
 
             if (is_string($override) && $override !== '') {

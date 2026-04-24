@@ -27,7 +27,7 @@ use Sindri\Ast\Data\HttpRouteData;
 use Sindri\Ast\Result\HttpRouteAttributeResult;
 use Valkyrja\Http\Routing\Attribute\DynamicRoute;
 use Valkyrja\Http\Routing\Attribute\Route;
-use Valkyrja\Http\Routing\Attribute\Route\Name as RouteName;
+use Valkyrja\Http\Routing\Attribute\Route\Name;
 use Valkyrja\Http\Routing\Attribute\Route\Path;
 use Valkyrja\Http\Routing\Attribute\Route\RouteHandler;
 use Valkyrja\Http\Routing\Data\DynamicRoute as DynamicRouteModel;
@@ -106,7 +106,7 @@ class HttpRouteAttributeReader extends RouteAttributeReader implements HttpRoute
         string $namespace,
         string $currentClass,
     ): string {
-        foreach ($this->findAttributesOnNode($class, RouteName::class, $useMap, $namespace) as $attr) {
+        foreach ($this->findAttributesOnNode($class, Name::class, $useMap, $namespace) as $attr) {
             $value = $this->extractExprValue($this->getAttrArg($attr->args, 'value', 0), $useMap, $namespace, $currentClass);
 
             if (is_string($value) && $value !== '') {
@@ -268,7 +268,7 @@ class HttpRouteAttributeReader extends RouteAttributeReader implements HttpRoute
             $name = $classNamePrefix . '.' . $name;
         }
 
-        foreach ($this->findAttributesOnNode($method, RouteName::class, $useMap, $namespace) as $attr) {
+        foreach ($this->findAttributesOnNode($method, Name::class, $useMap, $namespace) as $attr) {
             $suffix = $this->extractExprValue($this->getAttrArg($attr->args, 'value', 0), $useMap, $namespace, $currentClass);
 
             if (is_string($suffix) && $suffix !== '') {
