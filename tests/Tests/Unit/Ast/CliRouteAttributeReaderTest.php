@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Sindri\Tests\Unit\Ast;
 
-use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
+use PhpParser\Node\Scalar\String_;
 use Sindri\Ast\CliRouteAttributeReader;
 use Sindri\Ast\Data\CliRouteData;
 use Sindri\Ast\Data\HandlerData;

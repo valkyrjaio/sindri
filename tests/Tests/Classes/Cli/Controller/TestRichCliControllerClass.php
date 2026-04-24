@@ -22,7 +22,7 @@ use Valkyrja\Cli\Routing\Attribute\Route\Name;
 use Valkyrja\Cli\Routing\Attribute\Route\RouteHandler;
 use Valkyrja\Cli\Routing\Enum\ArgumentMode;
 
-class TestRichCliControllerClass
+final class TestRichCliControllerClass
 {
     // Route with Middleware attribute to cover updateMiddleware loop body (is_a → true)
     #[Route(name: 'rich:middleware', description: 'Route with middleware')]

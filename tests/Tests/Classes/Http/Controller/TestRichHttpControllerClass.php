@@ -28,7 +28,7 @@ use Valkyrja\Http\Routing\Attribute\Route\RouteHandler;
 
 #[Path('/api')]
 #[Name('api')]
-class TestRichHttpControllerClass
+final class TestRichHttpControllerClass
 {
     // Route with class-level path/name prefix + method-level Path and Name suffix
     #[Route(path: '/users', name: 'users.list')]

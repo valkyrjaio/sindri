@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sindri\Tests\Classes\Http;
 
-class TestRegexConstantsClass
+final class TestRegexConstantsClass
 {
     public const ALPHA_REGEX = '[a-z]+';
 }

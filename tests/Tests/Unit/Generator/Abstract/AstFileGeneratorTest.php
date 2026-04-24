@@ -22,7 +22,7 @@ final class AstFileGeneratorTest extends TestCase
     public function testWriteFileReturnsSuccessForNewFile(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AstFileGeneratorTestNew' . uniqid();
+        $className = 'AstFileGeneratorTestNew' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
 
         $generator = new class extends AstFileGenerator {
@@ -42,7 +42,7 @@ final class AstFileGeneratorTest extends TestCase
     public function testWriteFileReturnsSkippedWhenContentUnchanged(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AstFileGeneratorTestSkip' . uniqid();
+        $className = 'AstFileGeneratorTestSkip' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
         $content   = '<?php // same content';
 
@@ -66,7 +66,7 @@ final class AstFileGeneratorTest extends TestCase
 
     public function testWriteFileReturnsFailureWhenDirectoryDoesNotExist(): void
     {
-        $directory = sys_get_temp_dir() . '/nonexistent_dir_' . uniqid();
+        $directory = sys_get_temp_dir() . '/nonexistent_dir_' . __FUNCTION__;
         $className = 'AstFileGeneratorTestFail';
 
         $generator = new class extends AstFileGenerator {

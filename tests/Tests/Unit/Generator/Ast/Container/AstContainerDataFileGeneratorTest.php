@@ -50,7 +50,7 @@ final class AstContainerDataFileGeneratorTest extends TestCase
     public function testGenerateFileReturnsSuccessOnNewFile(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AppContainerDataTest' . uniqid();
+        $className = 'AppContainerDataTest' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
 
         $generator = new AstContainerDataFileGenerator();
@@ -69,7 +69,7 @@ final class AstContainerDataFileGeneratorTest extends TestCase
     public function testGenerateFileReturnsSkippedOnSameContent(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AppContainerDataSkip' . uniqid();
+        $className = 'AppContainerDataSkip' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
 
         $generator = new AstContainerDataFileGenerator();

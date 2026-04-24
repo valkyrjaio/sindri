@@ -58,7 +58,7 @@ final class AstHttpDataFileGeneratorTest extends TestCase
     public function testGenerateFileReturnsSuccessOnNewFile(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AppHttpRoutingDataTest' . uniqid();
+        $className = 'AppHttpRoutingDataTest' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
 
         $generator = new AstHttpDataFileGenerator();
@@ -78,7 +78,7 @@ final class AstHttpDataFileGeneratorTest extends TestCase
     public function testGenerateFileReturnsSkippedOnSameContent(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AppHttpRoutingDataSkip' . uniqid();
+        $className = 'AppHttpRoutingDataSkip' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
 
         $generator = new AstHttpDataFileGenerator();
@@ -106,7 +106,7 @@ final class AstHttpDataFileGeneratorTest extends TestCase
     public function testGenerateFileWithStaticRouteProducesPathsEntry(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AppHttpRoutingDataStatic' . uniqid();
+        $className = 'AppHttpRoutingDataStatic' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
 
         $routeData = new HttpRouteData(
@@ -135,7 +135,7 @@ final class AstHttpDataFileGeneratorTest extends TestCase
     public function testGenerateFileWithDynamicRouteProducesDynamicPathsEntry(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AppHttpRoutingDataDynamic' . uniqid();
+        $className = 'AppHttpRoutingDataDynamic' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
 
         $parameter = new HttpParameterData(name: 'id', regex: '[0-9]+');

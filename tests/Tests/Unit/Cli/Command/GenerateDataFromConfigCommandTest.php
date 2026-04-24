@@ -65,7 +65,7 @@ final class GenerateDataFromConfigCommandTest extends TestCase
 
     public function testRunCallsGenerateDataAndReturnsOutput(): void
     {
-        $tmpDir = sys_get_temp_dir() . '/sindri_cmd_test_' . uniqid();
+        $tmpDir = sys_get_temp_dir() . '/sindri_cmd_test_' . __FUNCTION__;
         mkdir($tmpDir);
 
         // A chainable OutputContract stub

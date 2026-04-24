@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Sindri\Tests\Unit\Generate;
 
-use Sindri\Ast\ConfigReader;
 use Override;
+use Sindri\Ast\ConfigReader;
 use Sindri\Ast\Result\ComponentProviderResult;
 use Sindri\Ast\Result\ConfigResult;
 use Sindri\Generate\Abstract\GenerateDataFromAst;

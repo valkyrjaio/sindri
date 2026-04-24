@@ -18,7 +18,7 @@ use Valkyrja\Cli\Routing\Attribute\OptionParameter;
 use Valkyrja\Cli\Routing\Attribute\Route;
 use Valkyrja\Cli\Routing\Attribute\Route\Middleware;
 
-class TestBadCliControllerClass
+final class TestBadCliControllerClass
 {
     // Route with Middleware(true) — a non-string middleware value that triggers the continue branch
     #[Route(name: 'bad:non-string-middleware', description: 'Route with non-string middleware arg')]

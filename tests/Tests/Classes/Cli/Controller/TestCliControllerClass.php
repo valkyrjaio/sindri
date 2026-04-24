@@ -17,7 +17,7 @@ use Valkyrja\Cli\Routing\Attribute\ArgumentParameter;
 use Valkyrja\Cli\Routing\Attribute\OptionParameter;
 use Valkyrja\Cli\Routing\Attribute\Route;
 
-class TestCliControllerClass
+final class TestCliControllerClass
 {
     #[Route(name: 'test:cli-route', description: 'A test CLI route')]
     #[ArgumentParameter(name: 'arg1', description: 'First argument')]

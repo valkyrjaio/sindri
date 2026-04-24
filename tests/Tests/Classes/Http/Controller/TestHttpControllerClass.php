@@ -17,7 +17,7 @@ use Valkyrja\Http\Routing\Attribute\DynamicRoute;
 use Valkyrja\Http\Routing\Attribute\Parameter;
 use Valkyrja\Http\Routing\Attribute\Route;
 
-class TestHttpControllerClass
+final class TestHttpControllerClass
 {
     #[Route(path: '/test', name: 'test.route')]
     public function staticAction(): void

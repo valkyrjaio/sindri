@@ -16,7 +16,7 @@ namespace Sindri\Tests\Classes\Event;
 use Valkyrja\Event\Attribute\Listener;
 
 #[Listener(eventId: TestEventClass::class, name: 'test-class-listener')]
-class TestListenerClass
+final class TestListenerClass
 {
     #[Listener(eventId: TestEventClass::class, name: 'test-method-listener')]
     public function handle(): void

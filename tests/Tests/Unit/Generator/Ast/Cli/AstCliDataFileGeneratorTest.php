@@ -49,7 +49,7 @@ final class AstCliDataFileGeneratorTest extends TestCase
     public function testGenerateFileReturnsSuccessOnNewFile(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AppCliRoutingDataTest' . uniqid();
+        $className = 'AppCliRoutingDataTest' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
 
         $generator = new AstCliDataFileGenerator();
@@ -68,7 +68,7 @@ final class AstCliDataFileGeneratorTest extends TestCase
     public function testGenerateFileReturnsSkippedOnSameContent(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AppCliRoutingDataSkip' . uniqid();
+        $className = 'AppCliRoutingDataSkip' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
 
         $generator = new AstCliDataFileGenerator();

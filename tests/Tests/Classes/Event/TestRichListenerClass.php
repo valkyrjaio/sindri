@@ -19,7 +19,7 @@ use Valkyrja\Event\Attribute\ListenerHandler;
 // Listener with an explicit #[ListenerHandler] attribute on the class level
 #[Listener(eventId: TestEventClass::class, name: 'handler-class-listener')]
 #[ListenerHandler([TestListenerClass::class, 'handle'])]
-class TestRichListenerClass
+final class TestRichListenerClass
 {
     // Method-level listener with an inline handler array directly in #[Listener]
     // covers the `$handlerRaw instanceof HandlerData ? $handlerRaw : ...` true branch

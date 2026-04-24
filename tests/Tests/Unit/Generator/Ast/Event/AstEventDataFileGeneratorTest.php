@@ -57,7 +57,7 @@ final class AstEventDataFileGeneratorTest extends TestCase
     public function testGenerateFileReturnsSuccessOnNewFile(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AppEventDataTest' . uniqid();
+        $className = 'AppEventDataTest' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
 
         $generator = new AstEventDataFileGenerator();
@@ -76,7 +76,7 @@ final class AstEventDataFileGeneratorTest extends TestCase
     public function testGenerateFileReturnsSkippedOnSameContent(): void
     {
         $directory = sys_get_temp_dir();
-        $className = 'AppEventDataSkip' . uniqid();
+        $className = 'AppEventDataSkip' . __FUNCTION__;
         $filePath  = $directory . '/' . $className . '.php';
 
         $generator = new AstEventDataFileGenerator();

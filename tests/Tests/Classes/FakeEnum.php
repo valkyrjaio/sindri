@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sindri\Tests\Classes;
 
-class FakeEnum
+final class FakeEnum
 {
     public const string INTEGER = '[0-9]+';
 }
