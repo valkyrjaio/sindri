@@ -34,7 +34,10 @@ class SindriComponentProvider implements ComponentProviderContract
     #[Override]
     public static function getContainerProviders(ApplicationContract $app): array
     {
-        return [];
+        return [
+            SindriAstServiceProvider::class,
+            SindriCommandServiceProvider::class,
+        ];
     }
 
     /**
@@ -52,7 +55,9 @@ class SindriComponentProvider implements ComponentProviderContract
     #[Override]
     public static function getCliProviders(ApplicationContract $app): array
     {
-        return [];
+        return [
+            SindriCliRouteProvider::class,
+        ];
     }
 
     /**

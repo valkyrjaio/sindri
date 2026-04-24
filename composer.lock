@@ -332,12 +332,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/valkyrjaio/valkyrja.git",
-                "reference": "24f965ac2abbf4415084c09527eccae4d168dda6"
+                "reference": "c79de288fedf90cc708a91975b53abb40e22c8e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/valkyrjaio/valkyrja/zipball/24f965ac2abbf4415084c09527eccae4d168dda6",
-                "reference": "24f965ac2abbf4415084c09527eccae4d168dda6",
+                "url": "https://api.github.com/repos/valkyrjaio/valkyrja/zipball/c79de288fedf90cc708a91975b53abb40e22c8e0",
+                "reference": "c79de288fedf90cc708a91975b53abb40e22c8e0",
                 "shasum": ""
             },
             "require": {

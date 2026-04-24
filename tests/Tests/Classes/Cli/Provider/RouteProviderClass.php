@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the Sindri package.
+ *
+ * (c) Melech Mizrachi <melechmizrachi@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Sindri\Tests\Classes\Cli\Provider;
+
+use Override;
+use Valkyrja\Cli\Routing\Data\Route;
+use Valkyrja\Cli\Routing\Provider\Contract\CliRouteProviderContract;
+
+final class RouteProviderClass implements CliRouteProviderContract
+{
+    #[Override]
+    public static function getControllerClasses(): array
+    {
+        return ['AControllerClass'];
+    }
+
+    #[Override]
+    public static function getRoutes(): array
+    {
+        return [
+            new Route(
+                name: 'test-provider',
+                description: 'test',
+                handler: static fn (): null => null,
+            ),
+        ];
+    }
+}
