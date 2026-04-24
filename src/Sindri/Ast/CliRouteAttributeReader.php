@@ -21,12 +21,11 @@ use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\ClassMethod;
-use Sindri\Ast\Abstract\AstReader;
+use Sindri\Ast\Abstract\RouteAttributeReader;
 use Sindri\Ast\Contract\CliRouteAttributeReaderContract;
 use Sindri\Ast\Data\CliArgumentParameterData;
 use Sindri\Ast\Data\CliOptionParameterData;
 use Sindri\Ast\Data\CliRouteData;
-use Sindri\Ast\Data\HandlerData;
 use Sindri\Ast\Result\CliRouteAttributeResult;
 use Valkyrja\Cli\Middleware\Contract\ExitedMiddlewareContract;
 use Valkyrja\Cli\Middleware\Contract\RouteDispatchedMiddlewareContract;
@@ -56,26 +55,18 @@ use function is_string;
  * Mirrors the logic of the framework's runtime attribute collector but operates
  * entirely on AST without executing any PHP code.
  */
-class CliRouteAttributeReader extends AstReader implements CliRouteAttributeReaderContract
+class CliRouteAttributeReader extends RouteAttributeReader implements CliRouteAttributeReaderContract
 {
     #[Override]
     public function readFile(string $filePath): CliRouteAttributeResult
     {
-        $stmts = $this->parseFileToStmts($filePath);
+        $context = $this->parseClassFile($filePath);
 
-        [$namespace, $innerStmts] = $this->unwrapNamespace($stmts);
-
-        $useMap = $this->buildUseMap($innerStmts);
-        $class  = $this->findClass($innerStmts);
-
-        if ($class === null) {
+        if ($context === null) {
             return new CliRouteAttributeResult();
         }
 
-        /** @var class-string $currentClass */
-        $currentClass = $namespace !== ''
-            ? $namespace . '\\' . ($class->name?->toString() ?? '')
-            : ($class->name?->toString() ?? '');
+        [$class, $namespace, $useMap, $currentClass] = $context;
 
         $routes = [];
 
@@ -92,6 +83,12 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
         return new CliRouteAttributeResult(routes: $routes);
     }
 
+    #[Override]
+    protected function getRouteHandlerAttributeClass(): string
+    {
+        return RouteHandler::class;
+    }
+
     /**
      * Collect all attribute arguments for a #[Route] and its companions into a CliRouteData.
      *
@@ -105,40 +102,14 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
         string $namespace,
         string $currentClass,
     ): CliRouteData|null {
-        $name        = $this->extractExprValue($this->getAttrArg($args, 'name', 0), $useMap, $namespace, $currentClass);
-        $description = $this->extractExprValue($this->getAttrArg($args, 'description', 1), $useMap, $namespace, $currentClass);
+        $name        = $this->extractStringArg($args, 'name', 0, $useMap, $namespace, $currentClass);
+        $description = $this->extractStringArg($args, 'description', 1, $useMap, $namespace, $currentClass);
 
-        if (! is_string($name) || $name === '' || ! is_string($description)) {
+        if ($name === '' || $description === '') {
             return null;
         }
 
         $name = $this->updateName($name, $method, $useMap, $namespace, $currentClass);
-
-        $routeMatchedMiddleware    = [];
-        $routeDispatchedMiddleware = [];
-        $throwableCaughtMiddleware = [];
-        $exitedMiddleware          = [];
-
-        $matchedExpr    = $this->getAttrArg($args, 'routeMatchedMiddleware', 4);
-        $dispatchedExpr = $this->getAttrArg($args, 'routeDispatchedMiddleware', 5);
-        $throwableExpr  = $this->getAttrArg($args, 'throwableCaughtMiddleware', 6);
-        $exitedExpr     = $this->getAttrArg($args, 'exitedMiddleware', 7);
-
-        if ($matchedExpr instanceof Array_) {
-            $routeMatchedMiddleware = $this->extractClassListFromArrayExpr($matchedExpr, $useMap, $namespace, $currentClass);
-        }
-
-        if ($dispatchedExpr instanceof Array_) {
-            $routeDispatchedMiddleware = $this->extractClassListFromArrayExpr($dispatchedExpr, $useMap, $namespace, $currentClass);
-        }
-
-        if ($throwableExpr instanceof Array_) {
-            $throwableCaughtMiddleware = $this->extractClassListFromArrayExpr($throwableExpr, $useMap, $namespace, $currentClass);
-        }
-
-        if ($exitedExpr instanceof Array_) {
-            $exitedMiddleware = $this->extractClassListFromArrayExpr($exitedExpr, $useMap, $namespace, $currentClass);
-        }
 
         [$routeMatchedMiddleware, $routeDispatchedMiddleware, $throwableCaughtMiddleware, $exitedMiddleware]
             = $this->updateMiddleware(
@@ -146,10 +117,10 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
                 $useMap,
                 $namespace,
                 $currentClass,
-                $routeMatchedMiddleware,
-                $routeDispatchedMiddleware,
-                $throwableCaughtMiddleware,
-                $exitedMiddleware,
+                $this->extractClassListArg($args, 'routeMatchedMiddleware', 4, $useMap, $namespace, $currentClass),
+                $this->extractClassListArg($args, 'routeDispatchedMiddleware', 5, $useMap, $namespace, $currentClass),
+                $this->extractClassListArg($args, 'throwableCaughtMiddleware', 6, $useMap, $namespace, $currentClass),
+                $this->extractClassListArg($args, 'exitedMiddleware', 7, $useMap, $namespace, $currentClass),
             );
 
         return new CliRouteData(
@@ -190,29 +161,6 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
     }
 
     /**
-     * Resolve the handler from #[Route\RouteHandler] or fall back to [CurrentClass::class, methodName].
-     *
-     * @param array<string, string> $useMap
-     */
-    protected function updateHandler(
-        ClassMethod $method,
-        array $useMap,
-        string $namespace,
-        string $currentClass,
-    ): HandlerData {
-        foreach ($this->findAttributesOnNode($method, RouteHandler::class, $useMap, $namespace) as $attr) {
-            $raw = $this->extractExprValue($this->getAttrArg($attr->args, 'handler', 0), $useMap, $namespace, $currentClass);
-
-            if ($raw instanceof HandlerData) {
-                return $raw;
-            }
-        }
-
-        /** @var class-string $currentClass */
-        return new HandlerData(class: $currentClass, method: $method->name->toString());
-    }
-
-    /**
      * Collect and classify #[Route\Middleware] attributes into the four middleware lists.
      *
      * @param array<string, string> $useMap
@@ -240,21 +188,44 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
                 continue;
             }
 
-            if (is_a($mwFqn, RouteMatchedMiddlewareContract::class, true)) {
-                $routeMatchedMiddleware[] = $mwFqn;
-            }
+            [$routeMatchedMiddleware, $routeDispatchedMiddleware, $throwableCaughtMiddleware, $exitedMiddleware]
+                = $this->classifyMiddleware($mwFqn, $routeMatchedMiddleware, $routeDispatchedMiddleware, $throwableCaughtMiddleware, $exitedMiddleware);
+        }
 
-            if (is_a($mwFqn, RouteDispatchedMiddlewareContract::class, true)) {
-                $routeDispatchedMiddleware[] = $mwFqn;
-            }
+        return [$routeMatchedMiddleware, $routeDispatchedMiddleware, $throwableCaughtMiddleware, $exitedMiddleware];
+    }
 
-            if (is_a($mwFqn, ThrowableCaughtMiddlewareContract::class, true)) {
-                $throwableCaughtMiddleware[] = $mwFqn;
-            }
+    /**
+     * Classify a single middleware FQN into the appropriate list(s) based on implemented contracts.
+     *
+     * @param class-string[] $routeMatchedMiddleware
+     * @param class-string[] $routeDispatchedMiddleware
+     * @param class-string[] $throwableCaughtMiddleware
+     * @param class-string[] $exitedMiddleware
+     *
+     * @return array{class-string[], class-string[], class-string[], class-string[]}
+     */
+    protected function classifyMiddleware(
+        string $mwFqn,
+        array $routeMatchedMiddleware,
+        array $routeDispatchedMiddleware,
+        array $throwableCaughtMiddleware,
+        array $exitedMiddleware,
+    ): array {
+        if (is_a($mwFqn, RouteMatchedMiddlewareContract::class, true)) {
+            $routeMatchedMiddleware[] = $mwFqn;
+        }
 
-            if (is_a($mwFqn, ExitedMiddlewareContract::class, true)) {
-                $exitedMiddleware[] = $mwFqn;
-            }
+        if (is_a($mwFqn, RouteDispatchedMiddlewareContract::class, true)) {
+            $routeDispatchedMiddleware[] = $mwFqn;
+        }
+
+        if (is_a($mwFqn, ThrowableCaughtMiddlewareContract::class, true)) {
+            $throwableCaughtMiddleware[] = $mwFqn;
+        }
+
+        if (is_a($mwFqn, ExitedMiddlewareContract::class, true)) {
+            $exitedMiddleware[] = $mwFqn;
         }
 
         return [$routeMatchedMiddleware, $routeDispatchedMiddleware, $throwableCaughtMiddleware, $exitedMiddleware];
@@ -298,23 +269,19 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
         string $namespace,
         string $currentClass,
     ): CliArgumentParameterData|null {
-        $name        = $this->extractExprValue($this->getAttrArg($args, 'name', 0), $useMap, $namespace, $currentClass);
-        $description = $this->extractExprValue($this->getAttrArg($args, 'description', 1), $useMap, $namespace, $currentClass);
+        $name        = $this->extractStringArg($args, 'name', 0, $useMap, $namespace, $currentClass);
+        $description = $this->extractStringArg($args, 'description', 1, $useMap, $namespace, $currentClass);
 
-        if (! is_string($name) || $name === '' || ! is_string($description)) {
+        if ($name === '' || $description === '') {
             return null;
         }
-
-        $castRaw      = $this->extractExprValue($this->getAttrArg($args, 'cast', 2), $useMap, $namespace, $currentClass);
-        $modeRaw      = $this->extractExprValue($this->getAttrArg($args, 'mode', 3), $useMap, $namespace, $currentClass);
-        $valueModeRaw = $this->extractExprValue($this->getAttrArg($args, 'valueMode', 4), $useMap, $namespace, $currentClass);
 
         return new CliArgumentParameterData(
             name: $name,
             description: $description,
-            cast: is_string($castRaw) ? $castRaw : null,
-            mode: is_string($modeRaw) ? $modeRaw : ArgumentMode::class . '::' . ArgumentMode::OPTIONAL->name,
-            valueMode: is_string($valueModeRaw) ? $valueModeRaw : ArgumentValueMode::class . '::' . ArgumentValueMode::DEFAULT->name,
+            cast: $this->extractStringArg($args, 'cast', 2, $useMap, $namespace, $currentClass) ?: null,
+            mode: $this->extractStringArg($args, 'mode', 3, $useMap, $namespace, $currentClass, ArgumentMode::class . '::' . ArgumentMode::OPTIONAL->name),
+            valueMode: $this->extractStringArg($args, 'valueMode', 4, $useMap, $namespace, $currentClass, ArgumentValueMode::class . '::' . ArgumentValueMode::DEFAULT->name),
         );
     }
 
@@ -356,35 +323,23 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
         string $namespace,
         string $currentClass,
     ): CliOptionParameterData|null {
-        $name        = $this->extractExprValue($this->getAttrArg($args, 'name', 0), $useMap, $namespace, $currentClass);
-        $description = $this->extractExprValue($this->getAttrArg($args, 'description', 1), $useMap, $namespace, $currentClass);
+        $name        = $this->extractStringArg($args, 'name', 0, $useMap, $namespace, $currentClass);
+        $description = $this->extractStringArg($args, 'description', 1, $useMap, $namespace, $currentClass);
 
-        if (! is_string($name) || $name === '' || ! is_string($description)) {
+        if ($name === '' || $description === '') {
             return null;
         }
-
-        $valueDisplayName = $this->extractExprValue($this->getAttrArg($args, 'valueDisplayName', 2), $useMap, $namespace, $currentClass);
-        $castRaw          = $this->extractExprValue($this->getAttrArg($args, 'cast', 3), $useMap, $namespace, $currentClass);
-        $defaultValue     = $this->extractExprValue($this->getAttrArg($args, 'defaultValue', 4), $useMap, $namespace, $currentClass);
-
-        $shortNamesExpr  = $this->getAttrArg($args, 'shortNames', 5);
-        $validValuesExpr = $this->getAttrArg($args, 'validValues', 6);
-        $modeRaw         = $this->extractExprValue($this->getAttrArg($args, 'mode', 7), $useMap, $namespace, $currentClass);
-        $valueModeRaw    = $this->extractExprValue($this->getAttrArg($args, 'valueMode', 8), $useMap, $namespace, $currentClass);
-
-        $shortNames  = $shortNamesExpr instanceof Array_ ? $this->extractStringListFromArrayExpr($shortNamesExpr, $useMap, $namespace, $currentClass) : [];
-        $validValues = $validValuesExpr instanceof Array_ ? $this->extractStringListFromArrayExpr($validValuesExpr, $useMap, $namespace, $currentClass) : [];
 
         return new CliOptionParameterData(
             name: $name,
             description: $description,
-            valueDisplayName: is_string($valueDisplayName) ? $valueDisplayName : '',
-            cast: is_string($castRaw) ? $castRaw : null,
-            defaultValue: is_string($defaultValue) ? $defaultValue : '',
-            shortNames: $shortNames,
-            validValues: $validValues,
-            mode: is_string($modeRaw) ? $modeRaw : OptionMode::class . '::' . OptionMode::OPTIONAL->name,
-            valueMode: is_string($valueModeRaw) ? $valueModeRaw : OptionValueMode::class . '::' . OptionValueMode::DEFAULT->name,
+            valueDisplayName: $this->extractStringArg($args, 'valueDisplayName', 2, $useMap, $namespace, $currentClass),
+            cast: $this->extractStringArg($args, 'cast', 3, $useMap, $namespace, $currentClass) ?: null,
+            defaultValue: $this->extractStringArg($args, 'defaultValue', 4, $useMap, $namespace, $currentClass),
+            shortNames: $this->extractStringListArg($args, 'shortNames', 5, $useMap, $namespace, $currentClass),
+            validValues: $this->extractStringListArg($args, 'validValues', 6, $useMap, $namespace, $currentClass),
+            mode: $this->extractStringArg($args, 'mode', 7, $useMap, $namespace, $currentClass, OptionMode::class . '::' . OptionMode::OPTIONAL->name),
+            valueMode: $this->extractStringArg($args, 'valueMode', 8, $useMap, $namespace, $currentClass, OptionValueMode::class . '::' . OptionValueMode::DEFAULT->name),
         );
     }
 
@@ -405,6 +360,20 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
         if ($data->helpText !== null) {
             $args[] = $this->buildNamedArg('helpText', $this->buildHandlerExpr($data->helpText));
         }
+
+        array_push($args, ...$this->buildRouteMiddlewareArgs($data));
+
+        return $this->buildNewExpr(RouteModel::class, $args);
+    }
+
+    /**
+     * Build the middleware/arguments/options named-arg list for a CliRouteData.
+     *
+     * @return Arg[]
+     */
+    protected function buildRouteMiddlewareArgs(CliRouteData $data): array
+    {
+        $args = [];
 
         if ($data->routeMatchedMiddleware !== []) {
             $args[] = $this->buildNamedArg('routeMatchedMiddleware', $this->buildClassArrayExpr($data->routeMatchedMiddleware));
@@ -430,7 +399,7 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
             $args[] = $this->buildNamedArg('options', $this->buildOptionListExpr($data->options));
         }
 
-        return $this->buildNewExpr(RouteModel::class, $args);
+        return $args;
     }
 
     /**
@@ -512,35 +481,5 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
         $args[] = $this->buildNamedArg('valueMode', $this->buildEnumCaseExpr($data->valueMode));
 
         return $this->buildNewExpr(OptionParameterModel::class, $args);
-    }
-
-    /**
-     * Extract a list of string scalar values from an array expression.
-     *
-     * @param array<string, string> $useMap
-     *
-     * @return string[]
-     */
-    protected function extractStringListFromArrayExpr(
-        Array_ $array,
-        array $useMap,
-        string $namespace,
-        string $currentClass,
-    ): array {
-        $values = [];
-
-        foreach ($array->items as $item) {
-            if ($item === null) {
-                continue;
-            }
-
-            $value = $this->extractExprValue($item->value, $useMap, $namespace, $currentClass);
-
-            if (is_string($value)) {
-                $values[] = $value;
-            }
-        }
-
-        return $values;
     }
 }

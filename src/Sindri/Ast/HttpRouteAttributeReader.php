@@ -24,9 +24,8 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\VariadicPlaceholder;
-use Sindri\Ast\Abstract\AstReader;
+use Sindri\Ast\Abstract\RouteAttributeReader;
 use Sindri\Ast\Contract\HttpRouteAttributeReaderContract;
-use Sindri\Ast\Data\HandlerData;
 use Sindri\Ast\Data\HttpParameterData;
 use Sindri\Ast\Data\HttpRouteData;
 use Sindri\Ast\Result\HttpRouteAttributeResult;
@@ -51,7 +50,6 @@ use Valkyrja\Http\Routing\Data\Parameter as ParameterModel;
 use Valkyrja\Http\Routing\Data\Route as RouteModel;
 
 use function is_a;
-use function is_bool;
 use function is_string;
 
 /**
@@ -61,55 +59,29 @@ use function is_string;
  * Mirrors the logic of the framework's runtime AttributeRouteCollector but operates
  * entirely on AST without executing any PHP code.
  */
-class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeReaderContract
+class HttpRouteAttributeReader extends RouteAttributeReader implements HttpRouteAttributeReaderContract
 {
     #[Override]
     public function readFile(string $filePath): HttpRouteAttributeResult
     {
-        $stmts = $this->parseFileToStmts($filePath);
+        $context = $this->parseClassFile($filePath);
 
-        [$namespace, $innerStmts] = $this->unwrapNamespace($stmts);
-
-        $useMap = $this->buildUseMap($innerStmts);
-        $class  = $this->findClass($innerStmts);
-
-        if ($class === null) {
+        if ($context === null) {
             return new HttpRouteAttributeResult();
         }
 
-        /** @var class-string $currentClass */
-        $currentClass = $namespace !== ''
-            ? $namespace . '\\' . ($class->name?->toString() ?? '')
-            : ($class->name?->toString() ?? '');
+        [$class, $namespace, $useMap, $currentClass] = $context;
 
-        // Collect class-level path/name prefixes
         $classPathPrefix = $this->extractClassPathPrefix($class, $useMap, $namespace, $currentClass);
         $classNamePrefix = $this->extractClassNamePrefix($class, $useMap, $namespace, $currentClass);
 
-        $routes    = [];
-        $routeData = [];
+        return $this->buildRouteResult($class, $useMap, $namespace, $currentClass, $classPathPrefix, $classNamePrefix);
+    }
 
-        foreach ($class->getMethods() as $method) {
-            foreach ($this->findAttributesOnNode($method, Route::class, $useMap, $namespace) as $attr) {
-                $data = $this->buildRouteData($attr->args, $method, $useMap, $namespace, $currentClass, $classPathPrefix, $classNamePrefix, false);
-
-                if ($data !== null) {
-                    $routes[$data->name]    = $this->buildRouteExpr($data);
-                    $routeData[$data->name] = $data;
-                }
-            }
-
-            foreach ($this->findAttributesOnNode($method, DynamicRoute::class, $useMap, $namespace) as $attr) {
-                $data = $this->buildRouteData($attr->args, $method, $useMap, $namespace, $currentClass, $classPathPrefix, $classNamePrefix, true);
-
-                if ($data !== null) {
-                    $routes[$data->name]    = $this->buildRouteExpr($data);
-                    $routeData[$data->name] = $data;
-                }
-            }
-        }
-
-        return new HttpRouteAttributeResult(routes: $routes, routeData: $routeData);
+    #[Override]
+    protected function getRouteHandlerAttributeClass(): string
+    {
+        return RouteHandler::class;
     }
 
     /**
@@ -157,6 +129,45 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
     }
 
     /**
+     * Scan all methods for #[Route] and #[DynamicRoute] attributes and build the result.
+     *
+     * @param array<string, string> $useMap
+     */
+    protected function buildRouteResult(
+        Class_ $class,
+        array $useMap,
+        string $namespace,
+        string $currentClass,
+        string $classPathPrefix,
+        string $classNamePrefix,
+    ): HttpRouteAttributeResult {
+        $routes    = [];
+        $routeData = [];
+
+        foreach ($class->getMethods() as $method) {
+            foreach ($this->findAttributesOnNode($method, Route::class, $useMap, $namespace) as $attr) {
+                $data = $this->buildRouteData($attr->args, $method, $useMap, $namespace, $currentClass, $classPathPrefix, $classNamePrefix, false);
+
+                if ($data !== null) {
+                    $routes[$data->name]    = $this->buildRouteExpr($data);
+                    $routeData[$data->name] = $data;
+                }
+            }
+
+            foreach ($this->findAttributesOnNode($method, DynamicRoute::class, $useMap, $namespace) as $attr) {
+                $data = $this->buildRouteData($attr->args, $method, $useMap, $namespace, $currentClass, $classPathPrefix, $classNamePrefix, true);
+
+                if ($data !== null) {
+                    $routes[$data->name]    = $this->buildRouteExpr($data);
+                    $routeData[$data->name] = $data;
+                }
+            }
+        }
+
+        return new HttpRouteAttributeResult(routes: $routes, routeData: $routeData);
+    }
+
+    /**
      * Collect all attribute arguments for a #[Route] / #[DynamicRoute] into an HttpRouteData.
      *
      * @param Arg[]                 $args
@@ -172,10 +183,10 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
         string $classNamePrefix,
         bool $isDynamic,
     ): HttpRouteData|null {
-        $path = $this->extractExprValue($this->getAttrArg($args, 'path', 0), $useMap, $namespace, $currentClass);
-        $name = $this->extractExprValue($this->getAttrArg($args, 'name', 1), $useMap, $namespace, $currentClass);
+        $path = $this->extractStringArg($args, 'path', 0, $useMap, $namespace, $currentClass);
+        $name = $this->extractStringArg($args, 'name', 1, $useMap, $namespace, $currentClass);
 
-        if (! is_string($path) || $path === '' || ! is_string($name) || $name === '') {
+        if ($path === '' || $name === '') {
             return null;
         }
 
@@ -185,62 +196,26 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
         // Mirror RouteFactory::fromRoute(): any path containing '{' is dynamic
         $isDynamic = $isDynamic || str_contains($path, '{');
 
-        $requestMethods = $this->extractInlineRequestMethods($args, $useMap, $namespace, $currentClass);
-        $requestMethods = $this->updateRequestMethods($requestMethods, $method, $useMap, $namespace, $currentClass);
-
-        $routeMatchedMiddleware    = [];
-        $routeDispatchedMiddleware = [];
-        $throwableCaughtMiddleware = [];
-        $sendingResponseMiddleware = [];
-        $terminatedMiddleware      = [];
-
-        $matchedExpr    = $this->getAttrArg($args, 'routeMatchedMiddleware', 5);
-        $dispatchedExpr = $this->getAttrArg($args, 'routeDispatchedMiddleware', 6);
-        $throwableExpr  = $this->getAttrArg($args, 'throwableCaughtMiddleware', 7);
-        $sendingExpr    = $this->getAttrArg($args, 'sendingResponseMiddleware', 8);
-        $terminatedExpr = $this->getAttrArg($args, 'terminatedMiddleware', 9);
-
-        if ($matchedExpr instanceof Array_) {
-            $routeMatchedMiddleware = $this->extractClassListFromArrayExpr($matchedExpr, $useMap, $namespace, $currentClass);
-        }
-
-        if ($dispatchedExpr instanceof Array_) {
-            $routeDispatchedMiddleware = $this->extractClassListFromArrayExpr($dispatchedExpr, $useMap, $namespace, $currentClass);
-        }
-
-        if ($throwableExpr instanceof Array_) {
-            $throwableCaughtMiddleware = $this->extractClassListFromArrayExpr($throwableExpr, $useMap, $namespace, $currentClass);
-        }
-
-        if ($sendingExpr instanceof Array_) {
-            $sendingResponseMiddleware = $this->extractClassListFromArrayExpr($sendingExpr, $useMap, $namespace, $currentClass);
-        }
-
-        if ($terminatedExpr instanceof Array_) {
-            $terminatedMiddleware = $this->extractClassListFromArrayExpr($terminatedExpr, $useMap, $namespace, $currentClass);
-        }
-
-        [
-            $routeMatchedMiddleware,
-            $routeDispatchedMiddleware,
-            $throwableCaughtMiddleware,
-            $sendingResponseMiddleware,
-            $terminatedMiddleware,
-        ] = $this->updateMiddleware(
+        $requestMethods = $this->updateRequestMethods(
+            $this->extractInlineRequestMethods($args, $useMap, $namespace, $currentClass),
             $method,
             $useMap,
             $namespace,
             $currentClass,
-            $routeMatchedMiddleware,
-            $routeDispatchedMiddleware,
-            $throwableCaughtMiddleware,
-            $sendingResponseMiddleware,
-            $terminatedMiddleware,
         );
 
-        $requestStruct  = $this->updateRequestStruct($method, $useMap, $namespace, $currentClass);
-        $responseStruct = $this->updateResponseStruct($method, $useMap, $namespace, $currentClass);
-        $parameters     = $isDynamic ? $this->updateParameters($args, $method, $useMap, $namespace, $currentClass) : [];
+        [$routeMatchedMiddleware, $routeDispatchedMiddleware, $throwableCaughtMiddleware, $sendingResponseMiddleware, $terminatedMiddleware]
+            = $this->updateMiddleware(
+                $method,
+                $useMap,
+                $namespace,
+                $currentClass,
+                $this->extractClassListArg($args, 'routeMatchedMiddleware', 5, $useMap, $namespace, $currentClass),
+                $this->extractClassListArg($args, 'routeDispatchedMiddleware', 6, $useMap, $namespace, $currentClass),
+                $this->extractClassListArg($args, 'throwableCaughtMiddleware', 7, $useMap, $namespace, $currentClass),
+                $this->extractClassListArg($args, 'sendingResponseMiddleware', 8, $useMap, $namespace, $currentClass),
+                $this->extractClassListArg($args, 'terminatedMiddleware', 9, $useMap, $namespace, $currentClass),
+            );
 
         return new HttpRouteData(
             path: $path,
@@ -252,10 +227,10 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
             throwableCaughtMiddleware: $throwableCaughtMiddleware,
             sendingResponseMiddleware: $sendingResponseMiddleware,
             terminatedMiddleware: $terminatedMiddleware,
-            requestStruct: $requestStruct,
-            responseStruct: $responseStruct,
+            requestStruct: $this->updateRequestStruct($method, $useMap, $namespace, $currentClass),
+            responseStruct: $this->updateResponseStruct($method, $useMap, $namespace, $currentClass),
             isDynamic: $isDynamic,
-            parameters: $parameters,
+            parameters: $isDynamic ? $this->updateParameters($args, $method, $useMap, $namespace, $currentClass) : [],
         );
     }
 
@@ -316,29 +291,6 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
     }
 
     /**
-     * Resolve the handler from #[Route\RouteHandler] or fall back to [CurrentClass::class, methodName].
-     *
-     * @param array<string, string> $useMap
-     */
-    protected function updateHandler(
-        ClassMethod $method,
-        array $useMap,
-        string $namespace,
-        string $currentClass,
-    ): HandlerData {
-        foreach ($this->findAttributesOnNode($method, RouteHandler::class, $useMap, $namespace) as $attr) {
-            $raw = $this->extractExprValue($this->getAttrArg($attr->args, 'handler', 0), $useMap, $namespace, $currentClass);
-
-            if ($raw instanceof HandlerData) {
-                return $raw;
-            }
-        }
-
-        /** @var class-string $currentClass */
-        return new HandlerData(class: $currentClass, method: $method->name->toString());
-    }
-
-    /**
      * Extract the inline requestMethods array from a #[Route] attribute (positional arg 3).
      *
      * @param Arg[]                 $args
@@ -373,7 +325,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
         string $currentClass,
     ): array {
         foreach ($this->findAttributesOnNode($method, RequestMethod::class, $useMap, $namespace) as $attr) {
-            foreach ($attr->args as $i => $arg) {
+            foreach ($attr->args as $arg) {
                 $value = $this->extractExprValue($arg->value, $useMap, $namespace, $currentClass);
 
                 if (is_string($value) && $value !== '') {
@@ -422,34 +374,58 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
                 continue;
             }
 
-            if (is_a($mwFqn, RouteMatchedMiddlewareContract::class, true)) {
-                $routeMatchedMiddleware[] = $mwFqn;
-            }
-
-            if (is_a($mwFqn, RouteDispatchedMiddlewareContract::class, true)) {
-                $routeDispatchedMiddleware[] = $mwFqn;
-            }
-
-            if (is_a($mwFqn, ThrowableCaughtMiddlewareContract::class, true)) {
-                $throwableCaughtMiddleware[] = $mwFqn;
-            }
-
-            if (is_a($mwFqn, SendingResponseMiddlewareContract::class, true)) {
-                $sendingResponseMiddleware[] = $mwFqn;
-            }
-
-            if (is_a($mwFqn, TerminatedMiddlewareContract::class, true)) {
-                $terminatedMiddleware[] = $mwFqn;
-            }
+            [
+                $routeMatchedMiddleware,
+                $routeDispatchedMiddleware,
+                $throwableCaughtMiddleware,
+                $sendingResponseMiddleware,
+                $terminatedMiddleware,
+            ] = $this->classifyMiddleware($mwFqn, $routeMatchedMiddleware, $routeDispatchedMiddleware, $throwableCaughtMiddleware, $sendingResponseMiddleware, $terminatedMiddleware);
         }
 
-        return [
-            $routeMatchedMiddleware,
-            $routeDispatchedMiddleware,
-            $throwableCaughtMiddleware,
-            $sendingResponseMiddleware,
-            $terminatedMiddleware,
-        ];
+        return [$routeMatchedMiddleware, $routeDispatchedMiddleware, $throwableCaughtMiddleware, $sendingResponseMiddleware, $terminatedMiddleware];
+    }
+
+    /**
+     * Classify a single middleware FQN into the appropriate list(s) based on implemented contracts.
+     *
+     * @param class-string[] $routeMatchedMiddleware
+     * @param class-string[] $routeDispatchedMiddleware
+     * @param class-string[] $throwableCaughtMiddleware
+     * @param class-string[] $sendingResponseMiddleware
+     * @param class-string[] $terminatedMiddleware
+     *
+     * @return array{class-string[], class-string[], class-string[], class-string[], class-string[]}
+     */
+    protected function classifyMiddleware(
+        string $mwFqn,
+        array $routeMatchedMiddleware,
+        array $routeDispatchedMiddleware,
+        array $throwableCaughtMiddleware,
+        array $sendingResponseMiddleware,
+        array $terminatedMiddleware,
+    ): array {
+        if (is_a($mwFqn, RouteMatchedMiddlewareContract::class, true)) {
+            $routeMatchedMiddleware[] = $mwFqn;
+        }
+
+        if (is_a($mwFqn, RouteDispatchedMiddlewareContract::class, true)) {
+            $routeDispatchedMiddleware[] = $mwFqn;
+        }
+
+        if (is_a($mwFqn, ThrowableCaughtMiddlewareContract::class, true)) {
+            $throwableCaughtMiddleware[] = $mwFqn;
+        }
+
+        if (is_a($mwFqn, SendingResponseMiddlewareContract::class, true)) {
+            $sendingResponseMiddleware[] = $mwFqn;
+        }
+
+        if (is_a($mwFqn, TerminatedMiddlewareContract::class, true)) {
+            $terminatedMiddleware[] = $mwFqn;
+        }
+
+        return [$routeMatchedMiddleware, $routeDispatchedMiddleware, $throwableCaughtMiddleware, $sendingResponseMiddleware, $terminatedMiddleware];
     }
 
     /**
@@ -517,26 +493,65 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
         string $namespace,
         string $currentClass,
     ): array {
-        $parameters = [];
+        return array_merge(
+            $this->collectInlineParameters($args, $useMap, $namespace, $currentClass),
+            $this->collectAttributeParameters($method, $useMap, $namespace, $currentClass),
+            $this->collectMethodParamParameters($method, $useMap, $namespace, $currentClass),
+        );
+    }
 
-        // Inline parameters array (positional arg 2 on DynamicRoute)
+    /**
+     * Collect parameters from the inline parameters array (positional arg 2 on DynamicRoute).
+     *
+     * @param Arg[]                 $args
+     * @param array<string, string> $useMap
+     *
+     * @return HttpParameterData[]
+     */
+    protected function collectInlineParameters(
+        array $args,
+        array $useMap,
+        string $namespace,
+        string $currentClass,
+    ): array {
         $inlineExpr = $this->getAttrArg($args, 'parameters', 2);
 
-        if ($inlineExpr instanceof Array_) {
-            foreach ($inlineExpr->items as $item) {
-                if ($item === null) {
-                    continue;
-                }
+        if (! $inlineExpr instanceof Array_) {
+            return [];
+        }
 
-                $param = $this->buildParameterFromExpr($item->value, $useMap, $namespace, $currentClass);
+        $parameters = [];
 
-                if ($param !== null) {
-                    $parameters[] = $param;
-                }
+        foreach ($inlineExpr->items as $item) {
+            if ($item === null) {
+                continue;
+            }
+
+            $param = $this->buildParameterFromExpr($item->value, $useMap, $namespace, $currentClass);
+
+            if ($param !== null) {
+                $parameters[] = $param;
             }
         }
 
-        // #[Parameter] method-level attributes
+        return $parameters;
+    }
+
+    /**
+     * Collect parameters from method-level #[Parameter] attributes.
+     *
+     * @param array<string, string> $useMap
+     *
+     * @return HttpParameterData[]
+     */
+    protected function collectAttributeParameters(
+        ClassMethod $method,
+        array $useMap,
+        string $namespace,
+        string $currentClass,
+    ): array {
+        $parameters = [];
+
         foreach ($this->findAttributesOnNode($method, Parameter::class, $useMap, $namespace) as $attr) {
             $param = $this->buildParameterData($attr->args, $useMap, $namespace, $currentClass);
 
@@ -545,7 +560,24 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
             }
         }
 
-        // #[Parameter] attributes placed on PHP method parameters (e.g., #[Parameter(...)] string $value)
+        return $parameters;
+    }
+
+    /**
+     * Collect parameters from #[Parameter] attributes placed on PHP method parameters.
+     *
+     * @param array<string, string> $useMap
+     *
+     * @return HttpParameterData[]
+     */
+    protected function collectMethodParamParameters(
+        ClassMethod $method,
+        array $useMap,
+        string $namespace,
+        string $currentClass,
+    ): array {
+        $parameters = [];
+
         foreach ($method->params as $methodParam) {
             foreach ($this->findAttributesOnNode($methodParam, Parameter::class, $useMap, $namespace) as $attr) {
                 $param = $this->buildParameterData($attr->args, $useMap, $namespace, $currentClass);
@@ -591,23 +623,19 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
     ): HttpParameterData|null {
         /** @var Arg[] $args */
         $args  = array_values(array_filter($args, static fn ($a): bool => $a instanceof Arg));
-        $name  = $this->extractExprValue($this->getAttrArg($args, 'name', 0), $useMap, $namespace, $currentClass);
-        $regex = $this->extractExprValue($this->getAttrArg($args, 'regex', 1), $useMap, $namespace, $currentClass);
+        $name  = $this->extractStringArg($args, 'name', 0, $useMap, $namespace, $currentClass);
+        $regex = $this->extractStringArg($args, 'regex', 1, $useMap, $namespace, $currentClass);
 
-        if (! is_string($name) || $name === '' || ! is_string($regex) || $regex === '') {
+        if ($name === '' || $regex === '') {
             return null;
         }
-
-        $castRaw        = $this->extractExprValue($this->getAttrArg($args, 'cast', 2), $useMap, $namespace, $currentClass);
-        $isOptionalRaw  = $this->extractExprValue($this->getAttrArg($args, 'isOptional', 3), $useMap, $namespace, $currentClass);
-        $shouldCapture  = $this->extractExprValue($this->getAttrArg($args, 'shouldCapture', 4), $useMap, $namespace, $currentClass);
 
         return new HttpParameterData(
             name: $name,
             regex: $regex,
-            cast: is_string($castRaw) ? $castRaw : null,
-            isOptional: is_bool($isOptionalRaw) ? $isOptionalRaw : false,
-            shouldCapture: is_bool($shouldCapture) ? $shouldCapture : true,
+            cast: $this->extractStringArg($args, 'cast', 2, $useMap, $namespace, $currentClass) ?: null,
+            isOptional: $this->extractBoolArg($args, 'isOptional', 3, $useMap, $namespace, $currentClass),
+            shouldCapture: $this->extractBoolArg($args, 'shouldCapture', 4, $useMap, $namespace, $currentClass, true),
         );
     }
 
@@ -635,6 +663,23 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
             $args[] = $this->buildNamedArg('requestMethods', $this->buildEnumCaseArrayExpr($data->requestMethods));
         }
 
+        array_push($args, ...$this->buildRouteMiddlewareArgs($data));
+        array_push($args, ...$this->buildRouteStructArgs($data));
+
+        $targetClass = $data->isDynamic ? DynamicRouteModel::class : RouteModel::class;
+
+        return $this->buildNewExpr($targetClass, $args);
+    }
+
+    /**
+     * Build the middleware named-arg list for an HttpRouteData.
+     *
+     * @return Arg[]
+     */
+    protected function buildRouteMiddlewareArgs(HttpRouteData $data): array
+    {
+        $args = [];
+
         if ($data->routeMatchedMiddleware !== []) {
             $args[] = $this->buildNamedArg('routeMatchedMiddleware', $this->buildClassArrayExpr($data->routeMatchedMiddleware));
         }
@@ -655,6 +700,18 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
             $args[] = $this->buildNamedArg('terminatedMiddleware', $this->buildClassArrayExpr($data->terminatedMiddleware));
         }
 
+        return $args;
+    }
+
+    /**
+     * Build the requestStruct/responseStruct named-arg list for an HttpRouteData.
+     *
+     * @return Arg[]
+     */
+    protected function buildRouteStructArgs(HttpRouteData $data): array
+    {
+        $args = [];
+
         if ($data->requestStruct !== null) {
             $args[] = $this->buildNamedArg('requestStruct', $this->buildClassConstExpr($data->requestStruct));
         }
@@ -663,9 +720,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
             $args[] = $this->buildNamedArg('responseStruct', $this->buildClassConstExpr($data->responseStruct));
         }
 
-        $targetClass = $data->isDynamic ? DynamicRouteModel::class : RouteModel::class;
-
-        return $this->buildNewExpr($targetClass, $args);
+        return $args;
     }
 
     /**
