@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -15,17 +15,23 @@ namespace Sindri\Provider;
 
 use Override;
 use Sindri\Ast\CliRouteAttributeReader;
+use Sindri\Ast\CliRouteParameterReader;
 use Sindri\Ast\ComponentProviderReader;
 use Sindri\Ast\ConfigReader;
 use Sindri\Ast\Contract\CliRouteAttributeReaderContract;
+use Sindri\Ast\Contract\CliRouteParameterReaderContract;
 use Sindri\Ast\Contract\ComponentProviderReaderContract;
 use Sindri\Ast\Contract\ConfigReaderContract;
 use Sindri\Ast\Contract\HttpRouteAttributeReaderContract;
+use Sindri\Ast\Contract\HttpRouteMiddlewareReaderContract;
+use Sindri\Ast\Contract\HttpRouteParameterReaderContract;
 use Sindri\Ast\Contract\ListenerAttributeReaderContract;
 use Sindri\Ast\Contract\ListenerProviderReaderContract;
 use Sindri\Ast\Contract\RouteProviderReaderContract;
 use Sindri\Ast\Contract\ServiceProviderReaderContract;
 use Sindri\Ast\HttpRouteAttributeReader;
+use Sindri\Ast\HttpRouteMiddlewareReader;
+use Sindri\Ast\HttpRouteParameterReader;
 use Sindri\Ast\ListenerAttributeReader;
 use Sindri\Ast\ListenerProviderReader;
 use Sindri\Ast\RouteProviderReader;
@@ -53,6 +59,9 @@ class SindriAstServiceProvider implements ServiceProviderContract
             CliRouteAttributeReaderContract::class    => [self::class, 'publishCliRouteAttributeReader'],
             ComponentProviderReaderContract::class    => [self::class, 'publishComponentProviderReader'],
             ConfigReaderContract::class               => [self::class, 'publishConfigReader'],
+            CliRouteParameterReaderContract::class    => [self::class, 'publishCliRouteParameterReader'],
+            HttpRouteMiddlewareReaderContract::class  => [self::class, 'publishHttpRouteMiddlewareReader'],
+            HttpRouteParameterReaderContract::class   => [self::class, 'publishHttpRouteParameterReader'],
             HttpRouteAttributeReaderContract::class   => [self::class, 'publishHttpRouteAttributeReader'],
             ListenerAttributeReaderContract::class    => [self::class, 'publishListenerAttributeReader'],
             ListenerProviderReaderContract::class     => [self::class, 'publishListenerProviderReader'],
@@ -69,7 +78,9 @@ class SindriAstServiceProvider implements ServiceProviderContract
     {
         $container->setSingleton(
             CliRouteAttributeReaderContract::class,
-            new CliRouteAttributeReader()
+            new CliRouteAttributeReader(
+                parameterReader: $container->getSingleton(CliRouteParameterReaderContract::class),
+            )
         );
     }
 
@@ -89,11 +100,38 @@ class SindriAstServiceProvider implements ServiceProviderContract
         );
     }
 
+    public static function publishCliRouteParameterReader(ContainerContract $container): void
+    {
+        $container->setSingleton(
+            CliRouteParameterReaderContract::class,
+            new CliRouteParameterReader()
+        );
+    }
+
+    public static function publishHttpRouteMiddlewareReader(ContainerContract $container): void
+    {
+        $container->setSingleton(
+            HttpRouteMiddlewareReaderContract::class,
+            new HttpRouteMiddlewareReader()
+        );
+    }
+
+    public static function publishHttpRouteParameterReader(ContainerContract $container): void
+    {
+        $container->setSingleton(
+            HttpRouteParameterReaderContract::class,
+            new HttpRouteParameterReader()
+        );
+    }
+
     public static function publishHttpRouteAttributeReader(ContainerContract $container): void
     {
         $container->setSingleton(
             HttpRouteAttributeReaderContract::class,
-            new HttpRouteAttributeReader()
+            new HttpRouteAttributeReader(
+                parameterReader: $container->getSingleton(HttpRouteParameterReaderContract::class),
+                middlewareReader: $container->getSingleton(HttpRouteMiddlewareReaderContract::class),
+            )
         );
     }
 
