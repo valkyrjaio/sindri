@@ -38,8 +38,8 @@ use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\Node\UseItem;
 use PhpParser\ParserFactory;
-use RuntimeException;
 use Sindri\Ast\Data\HandlerData;
+use Sindri\Ast\Throwable\Exception\AstFileReadException;
 
 use function count;
 use function is_float;
@@ -69,7 +69,7 @@ abstract class AstReader
         $code = file_get_contents($filePath);
 
         if ($code === false) {
-            throw new RuntimeException("Cannot read file '$filePath'.");
+            throw new AstFileReadException("Cannot read file '$filePath'.");
         }
 
         $parser = new ParserFactory()->createForNewestSupportedVersion();

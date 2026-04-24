@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Sindri\Generator\Ast\Http;
 
-use LogicException;
 use Override;
+use Sindri\Generator\Throwable\Exception\GeneratorUnreachableException;
 use PhpParser\Node\Arg;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
@@ -252,7 +252,7 @@ class AstHttpDataFileGenerator extends AstFileGenerator implements HttpDataFileG
             name: $data->name !== '' ? $data->name : 'temp',
             regex: '',
             parameters: $parameters,
-            handler: static fn (): never => throw new LogicException('unreachable'),
+            handler: static fn (): never => throw new GeneratorUnreachableException('unreachable'),
         );
 
         $processed = $this->processor->route($route);

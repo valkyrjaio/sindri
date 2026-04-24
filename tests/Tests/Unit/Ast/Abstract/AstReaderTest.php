@@ -29,8 +29,8 @@ use PhpParser\Node\Scalar\InterpolatedString;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Return_;
-use RuntimeException;
 use Sindri\Ast\Abstract\AstReader;
+use Sindri\Ast\Throwable\Exception\AstFileReadException;
 use Sindri\Ast\Data\HandlerData;
 use Sindri\Tests\Unit\Abstract\TestCase;
 
@@ -336,12 +336,12 @@ final class AstReaderTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // parseFileToStmts — unreadable file throws RuntimeException
+    // parseFileToStmts — unreadable file throws AstFileReadException
     // -------------------------------------------------------------------------
 
     public function testParseFileToStmtsThrowsForUnreadableFile(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(AstFileReadException::class);
 
         @$this->reader->callParseFileToStmts('/nonexistent/path/to/file.php');
     }
