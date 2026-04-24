@@ -264,12 +264,13 @@ abstract class AstReader
      * Attempt to convert an expression node to a fully-qualified class name.
      *
      * Returns null when the expression is not a `ClassName::class` const-fetch.
+     * Pass $currentClass to resolve `self::class` / `static::class` correctly.
      *
      * @param array<string, string> $useMap
      *
      * @return class-string|null
      */
-    protected function classConstFetchToFqn(Node|null $expr, array $useMap, string $namespace): string|null
+    protected function classConstFetchToFqn(Node|null $expr, array $useMap, string $namespace, string $currentClass = ''): string|null
     {
         if (! ($expr instanceof ClassConstFetch)
             || ! ($expr->class instanceof Name)
@@ -284,6 +285,11 @@ abstract class AstReader
         if ($expr->class instanceof FullyQualified) {
             /** @var class-string */
             return $shortName;
+        }
+
+        if (($shortName === 'self' || $shortName === 'static') && $currentClass !== '') {
+            /** @var class-string */
+            return $currentClass;
         }
 
         return $this->resolveClassName($shortName, $useMap, $namespace);
@@ -491,7 +497,7 @@ abstract class AstReader
             return null;
         }
 
-        $classValue = $this->classConstFetchToFqn($classItem->value, $useMap, $namespace);
+        $classValue = $this->classConstFetchToFqn($classItem->value, $useMap, $namespace, $currentClass);
 
         if ($classValue === null) {
             return null;

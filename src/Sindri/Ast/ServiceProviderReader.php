@@ -98,7 +98,7 @@ class ServiceProviderReader extends AstReader implements ServiceProviderReaderCo
                 continue;
             }
 
-            $serviceId = $this->classConstFetchToFqn($item->key, $useMap, $namespace);
+            $serviceId = $this->classConstFetchToFqn($item->key, $useMap, $namespace, $currentClass);
 
             if ($serviceId === null) {
                 continue;
