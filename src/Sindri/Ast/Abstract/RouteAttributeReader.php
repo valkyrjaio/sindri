@@ -26,13 +26,6 @@ use Sindri\Ast\Data\HandlerData;
 abstract class RouteAttributeReader extends AstReader
 {
     /**
-     * Return the fully-qualified class name of the #[RouteHandler] attribute used by this reader.
-     *
-     * @return class-string
-     */
-    abstract protected function getRouteHandlerAttributeClass(): string;
-
-    /**
      * Resolve the handler from #[Route\RouteHandler] or fall back to [CurrentClass::class, methodName].
      *
      * @param array<string, string> $useMap
@@ -54,4 +47,11 @@ abstract class RouteAttributeReader extends AstReader
         /** @var class-string $currentClass */
         return new HandlerData(class: $currentClass, method: $method->name->toString());
     }
+
+    /**
+     * Return the fully-qualified class name of the #[RouteHandler] attribute used by this reader.
+     *
+     * @return class-string
+     */
+    abstract protected function getRouteHandlerAttributeClass(): string;
 }
