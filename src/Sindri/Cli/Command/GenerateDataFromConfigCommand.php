@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Sindri package.
+ * This file is part of the Valkyrja Framework package.
  *
  * (c) Melech Mizrachi <melechmizrachi@gmail.com>
  *
@@ -32,6 +32,14 @@ use Sindri\Ast\RouteProviderReader;
 use Sindri\Ast\ServiceProviderReader;
 use Sindri\Constant\CommandName;
 use Sindri\Generate\Abstract\GenerateDataFromAst;
+use Sindri\Generator\Ast\Cli\AstCliDataFileGenerator;
+use Sindri\Generator\Ast\Container\AstContainerDataFileGenerator;
+use Sindri\Generator\Ast\Event\AstEventDataFileGenerator;
+use Sindri\Generator\Ast\Http\AstHttpDataFileGenerator;
+use Sindri\Generator\Cli\Contract\CliDataFileGeneratorContract;
+use Sindri\Generator\Container\Contract\ContainerDataFileGeneratorContract;
+use Sindri\Generator\Event\Contract\EventDataFileGeneratorContract;
+use Sindri\Generator\Http\Contract\HttpDataFileGeneratorContract;
 use Sindri\Provider\SindriCliRouteProvider;
 use Valkyrja\Cli\Interaction\Message\Contract\MessageContract;
 use Valkyrja\Cli\Interaction\Message\Message;
@@ -48,18 +56,22 @@ class GenerateDataFromConfigCommand extends GenerateDataFromAst
     public function __construct(
         protected RouteContract $route,
         OutputFactoryContract $outputFactory,
-        ConfigReaderContract $configReader = new ConfigReader(),
-        ComponentProviderReaderContract $componentProviderReader = new ComponentProviderReader(),
-        RouteProviderReaderContract $routeProviderReader = new RouteProviderReader(),
-        ListenerProviderReaderContract $listenerProviderReader = new ListenerProviderReader(),
-        ServiceProviderReaderContract $serviceProviderReader = new ServiceProviderReader(),
-        CliRouteAttributeReaderContract $cliRouteAttributeReader = new CliRouteAttributeReader(),
-        HttpRouteAttributeReaderContract $httpRouteAttributeReader = new HttpRouteAttributeReader(),
-        ListenerAttributeReaderContract $listenerAttributeReader = new ListenerAttributeReader(),
+        protected ConfigReaderContract $configReader = new ConfigReader(),
+        protected ComponentProviderReaderContract $componentProviderReader = new ComponentProviderReader(),
+        protected RouteProviderReaderContract $routeProviderReader = new RouteProviderReader(),
+        protected ListenerProviderReaderContract $listenerProviderReader = new ListenerProviderReader(),
+        protected ServiceProviderReaderContract $serviceProviderReader = new ServiceProviderReader(),
+        protected CliRouteAttributeReaderContract $cliRouteAttributeReader = new CliRouteAttributeReader(),
+        protected HttpRouteAttributeReaderContract $httpRouteAttributeReader = new HttpRouteAttributeReader(),
+        protected ListenerAttributeReaderContract $listenerAttributeReader = new ListenerAttributeReader(),
+        protected ContainerDataFileGeneratorContract $containerGenerator = new AstContainerDataFileGenerator(),
+        protected EventDataFileGeneratorContract $eventGenerator = new AstEventDataFileGenerator(),
+        protected CliDataFileGeneratorContract $cliGenerator = new AstCliDataFileGenerator(),
+        protected HttpDataFileGeneratorContract $httpGenerator = new AstHttpDataFileGenerator(),
     ) {
         parent::__construct(
             outputFactory: $outputFactory,
-            title: 'Generating Cli Component Data',
+            title: 'Generating Component Data From Config',
             configReader: $configReader,
             componentProviderReader: $componentProviderReader,
             routeProviderReader: $routeProviderReader,
@@ -68,6 +80,10 @@ class GenerateDataFromConfigCommand extends GenerateDataFromAst
             cliRouteAttributeReader: $cliRouteAttributeReader,
             httpRouteAttributeReader: $httpRouteAttributeReader,
             listenerAttributeReader: $listenerAttributeReader,
+            containerGenerator: $containerGenerator,
+            eventGenerator: $eventGenerator,
+            cliGenerator: $cliGenerator,
+            httpGenerator: $httpGenerator,
         );
     }
 
