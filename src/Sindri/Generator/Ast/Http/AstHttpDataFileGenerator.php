@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sindri\Generator\Ast\Http;
 
+use LogicException;
 use Override;
 use PhpParser\Node\Arg;
 use PhpParser\Node\ArrayItem;
@@ -32,7 +33,6 @@ use Valkyrja\Http\Routing\Data\Contract\RouteContract;
 use Valkyrja\Http\Routing\Data\DynamicRoute;
 use Valkyrja\Http\Routing\Data\HttpRoutingData;
 use Valkyrja\Http\Routing\Data\Parameter;
-use Valkyrja\Http\Routing\Data\Route;
 use Valkyrja\Http\Routing\Processor\Contract\ProcessorContract;
 use Valkyrja\Http\Routing\Processor\Processor;
 
@@ -252,7 +252,7 @@ class AstHttpDataFileGenerator extends AstFileGenerator implements HttpDataFileG
             name: $data->name !== '' ? $data->name : 'temp',
             regex: '',
             parameters: $parameters,
-            handler: static fn (): never => throw new \LogicException('unreachable'),
+            handler: static fn (): never => throw new LogicException('unreachable'),
         );
 
         $processed = $this->processor->route($route);

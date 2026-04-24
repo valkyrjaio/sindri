@@ -78,7 +78,7 @@ class ConfigReader extends AstReader implements ConfigReaderContract
 
         // The raw dir from the config is the app root (not the PSR-4 root).
         // Use it only to resolve relative dataPath values.
-        $appRoot  = $this->resolvePathExpr($this->findNamedArgValue($args, 'dir'), $fileDir);
+        $appRoot       = $this->resolvePathExpr($this->findNamedArgValue($args, 'dir'), $fileDir);
         $dataPath      = $this->extractStringNamedArg($args, 'dataPath');
         $dataNamespace = $this->extractStringNamedArg($args, 'dataNamespace');
 
