@@ -42,6 +42,7 @@ use Sindri\Ast\Data\HandlerData;
 use Sindri\Ast\Throwable\Exception\AstFileReadException;
 
 use function count;
+use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
@@ -543,6 +544,158 @@ abstract class AstReader
         }
 
         return $classes;
+    }
+
+    // -------------------------------------------------------------------------
+    // Convenience attribute-argument extraction helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Parse a PHP file and extract the primary class context.
+     *
+     * Returns null when the file contains no class node.
+     *
+     * @return array{0: Class_, 1: string, 2: array<string, string>, 3: class-string}|null
+     */
+    protected function parseClassFile(string $filePath): array|null
+    {
+        $stmts = $this->parseFileToStmts($filePath);
+
+        [$namespace, $innerStmts] = $this->unwrapNamespace($stmts);
+
+        $useMap = $this->buildUseMap($innerStmts);
+        $class  = $this->findClass($innerStmts);
+
+        if ($class === null) {
+            return null;
+        }
+
+        /** @var class-string $currentClass */
+        $currentClass = $namespace !== ''
+            ? $namespace . '\\' . ($class->name?->toString() ?? '')
+            : ($class->name?->toString() ?? '');
+
+        return [$class, $namespace, $useMap, $currentClass];
+    }
+
+    /**
+     * Extract a string value from an attribute argument, or return $default when absent or non-string.
+     *
+     * @param Arg[]                 $args
+     * @param array<string, string> $useMap
+     */
+    protected function extractStringArg(
+        array $args,
+        string $name,
+        int $position,
+        array $useMap,
+        string $namespace,
+        string $currentClass,
+        string $default = '',
+    ): string {
+        $value = $this->extractExprValue($this->getAttrArg($args, $name, $position), $useMap, $namespace, $currentClass);
+
+        return is_string($value) ? $value : $default;
+    }
+
+    /**
+     * Extract a bool value from an attribute argument, or return $default when absent or non-bool.
+     *
+     * @param Arg[]                 $args
+     * @param array<string, string> $useMap
+     */
+    protected function extractBoolArg(
+        array $args,
+        string $name,
+        int $position,
+        array $useMap,
+        string $namespace,
+        string $currentClass,
+        bool $default = false,
+    ): bool {
+        $value = $this->extractExprValue($this->getAttrArg($args, $name, $position), $useMap, $namespace, $currentClass);
+
+        return is_bool($value) ? $value : $default;
+    }
+
+    /**
+     * Extract a list of class-string values from an array attribute argument.
+     *
+     * Returns an empty array when the argument is absent or not an array expression.
+     *
+     * @param Arg[]                 $args
+     * @param array<string, string> $useMap
+     *
+     * @return class-string[]
+     */
+    protected function extractClassListArg(
+        array $args,
+        string $name,
+        int $position,
+        array $useMap,
+        string $namespace,
+        string $currentClass,
+    ): array {
+        $expr = $this->getAttrArg($args, $name, $position);
+
+        return $expr instanceof Array_
+            ? $this->extractClassListFromArrayExpr($expr, $useMap, $namespace, $currentClass)
+            : [];
+    }
+
+    /**
+     * Extract a list of string scalar values from an array expression.
+     *
+     * @param array<string, string> $useMap
+     *
+     * @return string[]
+     */
+    protected function extractStringListFromArrayExpr(
+        Array_ $array,
+        array $useMap,
+        string $namespace,
+        string $currentClass = '',
+    ): array {
+        $values = [];
+
+        foreach ($array->items as $item) {
+            if ($item === null) {
+                continue;
+            }
+
+            $value = $this->extractExprValue($item->value, $useMap, $namespace, $currentClass);
+
+            if (is_string($value)) {
+                $values[] = $value;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * Extract a list of string scalar values from an array attribute argument.
+     *
+     * Returns an empty array when the argument is absent or not an array expression.
+     *
+     * @param Arg[]                 $args
+     * @param array<string, string> $useMap
+     *
+     * @return string[]
+     */
+    protected function extractStringListArg(
+        array $args,
+        string $name,
+        int $position,
+        array $useMap,
+        string $namespace,
+        string $currentClass,
+    ): array {
+        $expr = $this->getAttrArg($args, $name, $position);
+
+        return $expr instanceof Array_
+            ? $this->extractStringListFromArrayExpr($expr, $useMap, $namespace, $currentClass)
+            : [];
     }
 
     // -------------------------------------------------------------------------

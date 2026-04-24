@@ -23,6 +23,7 @@ use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\MagicConst\Dir;
 use PhpParser\Node\Scalar\String_;
+use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use Sindri\Ast\Abstract\AstReader;
@@ -45,46 +46,82 @@ class ConfigReader extends AstReader implements ConfigReaderContract
     #[Override]
     public function readFile(string $filePath): ConfigResult
     {
-        $stmts = $this->parseFileToStmts($filePath);
+        $context = $this->parseClassFile($filePath);
 
-        [$namespace, $stmts] = $this->unwrapNamespace($stmts);
-
-        $useMap    = $this->buildUseMap($stmts);
-        $classNode = $this->findClass($stmts);
-
-        if ($classNode === null) {
+        if ($context === null) {
             return new ConfigResult();
         }
 
-        $methods   = $this->indexMethods($classNode);
-        $construct = $methods['__construct'] ?? null;
+        [$classNode, $namespace, $useMap] = $context;
 
-        if ($construct === null) {
-            return new ConfigResult();
-        }
-
-        $args = $this->findParentConstructArgs($construct);
+        $args = $this->findConstructorArgs($classNode);
 
         if ($args === null) {
             return new ConfigResult();
         }
 
+        return $this->buildConfigResult($args, $filePath, $namespace, $useMap);
+    }
+
+    /**
+     * Locate the constructor and extract its parent::__construct() arguments.
+     *
+     * @return Arg[]|null
+     */
+    protected function findConstructorArgs(Class_ $class): array|null
+    {
+        $construct = $this->indexMethods($class)['__construct'] ?? null;
+
+        return $construct !== null ? $this->findParentConstructArgs($construct) : null;
+    }
+
+    /**
+     * Walk the constructor body to find parent::__construct() and return its args.
+     *
+     * @return Arg[]|null
+     */
+    protected function findParentConstructArgs(ClassMethod $method): array|null
+    {
+        foreach ($method->stmts ?? [] as $stmt) {
+            if (! $stmt instanceof Expression || ! $this->isParentConstruct($stmt->expr)) {
+                continue;
+            }
+
+            /** @var StaticCall $call */
+            $call = $stmt->expr;
+
+            /** @var Arg[] */
+            return $call->args;
+        }
+
+        return null;
+    }
+
+    /**
+     * Return true when the expression is a parent::__construct() call.
+     */
+    protected function isParentConstruct(Node $expr): bool
+    {
+        return $expr instanceof StaticCall
+            && $expr->class instanceof Name
+            && $expr->class->toString() === 'parent'
+            && $expr->name instanceof Identifier
+            && $expr->name->toString() === '__construct';
+    }
+
+    /**
+     * Build a ConfigResult from the extracted constructor argument list.
+     *
+     * @param Arg[]                 $args
+     * @param array<string, string> $useMap
+     */
+    protected function buildConfigResult(array $args, string $filePath, string $namespace, array $useMap): ConfigResult
+    {
         $fileDir       = dirname($filePath);
         $baseNamespace = $this->extractStringNamedArg($args, 'namespace');
-
-        // Compute PSR-4 source root: the config file sits at depth (fileNs - baseNs)
-        // below the namespace root, so ascend that many levels from the file's dir.
-        $srcDir   = $this->computeSrcDir($fileDir, $namespace, $baseNamespace);
-
-        // The raw dir from the config is the app root (not the PSR-4 root).
-        // Use it only to resolve relative dataPath values.
-        $appRoot       = $this->resolvePathExpr($this->findNamedArgValue($args, 'dir'), $fileDir);
-        $dataPath      = $this->extractStringNamedArg($args, 'dataPath');
+        $srcDir        = $this->computeSrcDir($fileDir, $namespace, $baseNamespace);
+        $dataPath      = $this->resolveDataPath($args, $fileDir);
         $dataNamespace = $this->extractStringNamedArg($args, 'dataNamespace');
-
-        if ($dataPath !== '' && ! str_starts_with($dataPath, '/')) {
-            $dataPath = rtrim($appRoot, '/') . '/' . $dataPath;
-        }
 
         if ($baseNamespace === '' || $srcDir === '' || $dataPath === '' || $dataNamespace === '') {
             return new ConfigResult();
@@ -100,36 +137,20 @@ class ConfigReader extends AstReader implements ConfigReaderContract
     }
 
     /**
-     * Walk the constructor body to find parent::__construct() and return its args.
+     * Resolve the data path, prepending the app root when the value is relative.
      *
-     * @return Arg[]|null
+     * @param Arg[] $args
      */
-    protected function findParentConstructArgs(ClassMethod $method): array|null
+    protected function resolveDataPath(array $args, string $fileDir): string
     {
-        foreach ($method->stmts ?? [] as $stmt) {
-            if (! $stmt instanceof Expression) {
-                continue;
-            }
+        $appRoot  = $this->resolvePathExpr($this->findNamedArgValue($args, 'dir'), $fileDir);
+        $dataPath = $this->extractStringNamedArg($args, 'dataPath');
 
-            $expr = $stmt->expr;
-
-            if (! $expr instanceof StaticCall) {
-                continue;
-            }
-
-            if (! ($expr->class instanceof Name) || $expr->class->toString() !== 'parent') {
-                continue;
-            }
-
-            if (! ($expr->name instanceof Identifier) || $expr->name->toString() !== '__construct') {
-                continue;
-            }
-
-            /** @var Arg[] */
-            return $expr->args;
+        if ($dataPath !== '' && ! str_starts_with($dataPath, '/')) {
+            $dataPath = rtrim($appRoot, '/') . '/' . $dataPath;
         }
 
-        return null;
+        return $dataPath;
     }
 
     /**
