@@ -252,6 +252,7 @@ final class CliRouteParameterReaderTest extends TestCase
         foreach ($expr->args as $arg) {
             if ($arg instanceof Arg && $arg->name instanceof Identifier && $arg->name->toString() === 'cast') {
                 $castArg = $arg;
+
                 break;
             }
         }
@@ -278,6 +279,7 @@ final class CliRouteParameterReaderTest extends TestCase
         foreach ($expr->args as $arg) {
             if ($arg instanceof Arg && $arg->name instanceof Identifier && $arg->name->toString() === 'cast') {
                 $castArg = $arg;
+
                 break;
             }
         }
@@ -302,6 +304,7 @@ final class CliRouteParameterReaderTest extends TestCase
         foreach ($expr->args as $arg) {
             if ($arg instanceof Arg && $arg->name instanceof Identifier && $arg->name->toString() === 'cast') {
                 $castArg = $arg;
+
                 break;
             }
         }
@@ -323,6 +326,7 @@ final class CliRouteParameterReaderTest extends TestCase
         foreach ($expr->args as $arg) {
             if ($arg instanceof Arg && $arg->name instanceof Identifier && $arg->name->toString() === 'shortNames') {
                 $shortNamesArg = $arg;
+
                 break;
             }
         }
@@ -343,6 +347,7 @@ final class CliRouteParameterReaderTest extends TestCase
         foreach ($expr->args as $arg) {
             if ($arg instanceof Arg && $arg->name instanceof Identifier && $arg->name->toString() === 'validValues') {
                 $validValuesArg = $arg;
+
                 break;
             }
         }

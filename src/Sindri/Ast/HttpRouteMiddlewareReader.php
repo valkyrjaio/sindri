@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Sindri\Ast;
 
 use Override;
-use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Stmt\ClassMethod;
 use Sindri\Ast\Abstract\AstReader;

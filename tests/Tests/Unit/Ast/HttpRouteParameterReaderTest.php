@@ -21,7 +21,6 @@ use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Identifier;
-use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\VariadicPlaceholder;
@@ -200,6 +199,7 @@ final class HttpRouteParameterReaderTest extends TestCase
         foreach ($expr->args as $arg) {
             if ($arg instanceof Arg && $arg->name instanceof Identifier && $arg->name->toString() === 'regex') {
                 $regexArg = $arg;
+
                 break;
             }
         }
@@ -220,6 +220,7 @@ final class HttpRouteParameterReaderTest extends TestCase
         foreach ($expr->args as $arg) {
             if ($arg instanceof Arg && $arg->name instanceof Identifier && $arg->name->toString() === 'regex') {
                 $regexArg = $arg;
+
                 break;
             }
         }
@@ -240,6 +241,7 @@ final class HttpRouteParameterReaderTest extends TestCase
         foreach ($expr->args as $arg) {
             if ($arg instanceof Arg && $arg->name instanceof Identifier && $arg->name->toString() === 'cast') {
                 $castArg = $arg;
+
                 break;
             }
         }
@@ -266,6 +268,7 @@ final class HttpRouteParameterReaderTest extends TestCase
         foreach ($expr->args as $arg) {
             if ($arg instanceof Arg && $arg->name instanceof Identifier && $arg->name->toString() === 'cast') {
                 $castArg = $arg;
+
                 break;
             }
         }
