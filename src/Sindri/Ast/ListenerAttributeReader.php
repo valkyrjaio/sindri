@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sindri\Ast;
 
+use Override;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ConstFetch;
@@ -41,6 +42,7 @@ class ListenerAttributeReader extends AstReader implements ListenerAttributeRead
 {
     protected const string DEFAULT_HANDLE_METHOD = 'handle';
 
+    #[Override]
     public function readFile(string $filePath): ListenerAttributeResult
     {
         $stmts = $this->parseFileToStmts($filePath);
@@ -54,6 +56,7 @@ class ListenerAttributeReader extends AstReader implements ListenerAttributeRead
             return new ListenerAttributeResult();
         }
 
+        /** @var class-string $currentClass */
         $currentClass = $namespace !== ''
             ? $namespace . '\\' . ($class->name?->toString() ?? '')
             : ($class->name?->toString() ?? '');
@@ -108,6 +111,7 @@ class ListenerAttributeReader extends AstReader implements ListenerAttributeRead
             ? $handlerRaw
             : $this->resolveListenerHandler($useMap, $namespace, $currentClass, $class, $method);
 
+        /** @var class-string $eventId */
         return new ListenerData(eventId: $eventId, name: $name, handler: $handler);
     }
 
@@ -135,9 +139,11 @@ class ListenerAttributeReader extends AstReader implements ListenerAttributeRead
         }
 
         if ($method !== null) {
+            /** @var class-string $currentClass */
             return new HandlerData(class: $currentClass, method: $method->name->toString());
         }
 
+        /** @var class-string $currentClass */
         return new HandlerData(class: $currentClass, method: self::DEFAULT_HANDLE_METHOD);
     }
 

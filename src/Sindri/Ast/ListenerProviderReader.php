@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sindri\Ast;
 
 use Override;
+use PhpParser\Node\Expr;
 use Sindri\Ast\Abstract\AstReader;
 use Sindri\Ast\Contract\ListenerProviderReaderContract;
 use Sindri\Ast\Result\ListenerProviderResult;
@@ -73,7 +74,7 @@ class ListenerProviderReader extends AstReader implements ListenerProviderReader
      *
      * @param array<string, string> $useMap
      *
-     * @return list<object>
+     * @return Expr[]
      */
     protected function extractListeners(mixed $method, array $useMap, string $namespace): array
     {

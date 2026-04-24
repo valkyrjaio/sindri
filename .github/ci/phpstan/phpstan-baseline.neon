@@ -1,2 +1,25 @@
 parameters:
 	ignoreErrors:
+		-
+			message: '#^Default value of the parameter \#1 \$namespace \(''''\) of method Sindri\\Ast\\Result\\ConfigResult\:\:__construct\(\) is incompatible with type non\-empty\-string\.$#'
+			identifier: parameter.defaultValue
+			count: 1
+			path: ../../../src/Sindri/Ast/Result/ConfigResult.php
+
+		-
+			message: '#^Default value of the parameter \#2 \$dir \(''''\) of method Sindri\\Ast\\Result\\ConfigResult\:\:__construct\(\) is incompatible with type non\-empty\-string\.$#'
+			identifier: parameter.defaultValue
+			count: 1
+			path: ../../../src/Sindri/Ast/Result/ConfigResult.php
+
+		-
+			message: '#^Default value of the parameter \#3 \$dataPath \(''''\) of method Sindri\\Ast\\Result\\ConfigResult\:\:__construct\(\) is incompatible with type non\-empty\-string\.$#'
+			identifier: parameter.defaultValue
+			count: 1
+			path: ../../../src/Sindri/Ast/Result/ConfigResult.php
+
+		-
+			message: '#^Default value of the parameter \#4 \$dataNamespace \(''''\) of method Sindri\\Ast\\Result\\ConfigResult\:\:__construct\(\) is incompatible with type non\-empty\-string\.$#'
+			identifier: parameter.defaultValue
+			count: 1
+			path: ../../../src/Sindri/Ast/Result/ConfigResult.php

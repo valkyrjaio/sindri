@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sindri\Ast;
 
+use Override;
 use PhpParser\Node\Arg;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
@@ -57,6 +58,7 @@ use function is_string;
  */
 class CliRouteAttributeReader extends AstReader implements CliRouteAttributeReaderContract
 {
+    #[Override]
     public function readFile(string $filePath): CliRouteAttributeResult
     {
         $stmts = $this->parseFileToStmts($filePath);
@@ -70,6 +72,7 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
             return new CliRouteAttributeResult();
         }
 
+        /** @var class-string $currentClass */
         $currentClass = $namespace !== ''
             ? $namespace . '\\' . ($class->name?->toString() ?? '')
             : ($class->name?->toString() ?? '');
@@ -205,6 +208,7 @@ class CliRouteAttributeReader extends AstReader implements CliRouteAttributeRead
             }
         }
 
+        /** @var class-string $currentClass */
         return new HandlerData(class: $currentClass, method: $method->name->toString());
     }
 

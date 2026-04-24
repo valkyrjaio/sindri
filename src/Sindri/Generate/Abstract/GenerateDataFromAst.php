@@ -145,7 +145,7 @@ abstract class GenerateDataFromAst
 
         $filePath = $this->fqnToFilePath($providerClass, $config->namespace, $config->dir);
 
-        if (! is_file($filePath)) {
+        if ($filePath === '' || ! is_file($filePath)) {
             return new ComponentProviderResult();
         }
 
@@ -176,6 +176,7 @@ abstract class GenerateDataFromAst
         }
 
         try {
+            /** @psalm-suppress ArgumentTypeCoercion @phpstan-ignore argument.type */
             $file = new ReflectionClass($fqn)->getFileName();
 
             return $file !== false ? $file : '';
@@ -203,7 +204,7 @@ abstract class GenerateDataFromAst
         foreach ($serviceProviders as $providerClass) {
             $filePath = $this->fqnToFilePath($providerClass, $config->namespace, $config->dir);
 
-            if (! is_file($filePath)) {
+            if ($filePath === '' || ! is_file($filePath)) {
                 continue;
             }
 
@@ -239,7 +240,7 @@ abstract class GenerateDataFromAst
         foreach ($listenerProviders as $providerClass) {
             $filePath = $this->fqnToFilePath($providerClass, $config->namespace, $config->dir);
 
-            if (! is_file($filePath)) {
+            if ($filePath === '' || ! is_file($filePath)) {
                 continue;
             }
 
@@ -248,7 +249,7 @@ abstract class GenerateDataFromAst
             foreach ($providerResult->listenerClasses as $listenerClass) {
                 $listenerPath = $this->fqnToFilePath($listenerClass, $config->namespace, $config->dir);
 
-                if (! is_file($listenerPath)) {
+                if ($listenerPath === '' || ! is_file($listenerPath)) {
                     continue;
                 }
 
@@ -285,7 +286,7 @@ abstract class GenerateDataFromAst
         foreach ($cliRouteProviders as $providerClass) {
             $filePath = $this->fqnToFilePath($providerClass, $config->namespace, $config->dir);
 
-            if (! is_file($filePath)) {
+            if ($filePath === '' || ! is_file($filePath)) {
                 continue;
             }
 
@@ -294,7 +295,7 @@ abstract class GenerateDataFromAst
             foreach ($providerResult->controllerClasses as $controllerClass) {
                 $controllerPath = $this->fqnToFilePath($controllerClass, $config->namespace, $config->dir);
 
-                if (! is_file($controllerPath)) {
+                if ($controllerPath === '' || ! is_file($controllerPath)) {
                     continue;
                 }
 
@@ -332,7 +333,7 @@ abstract class GenerateDataFromAst
         foreach ($httpRouteProviders as $providerClass) {
             $filePath = $this->fqnToFilePath($providerClass, $config->namespace, $config->dir);
 
-            if (! is_file($filePath)) {
+            if ($filePath === '' || ! is_file($filePath)) {
                 continue;
             }
 
@@ -341,7 +342,7 @@ abstract class GenerateDataFromAst
             foreach ($providerResult->controllerClasses as $controllerClass) {
                 $controllerPath = $this->fqnToFilePath($controllerClass, $config->namespace, $config->dir);
 
-                if (! is_file($controllerPath)) {
+                if ($controllerPath === '' || ! is_file($controllerPath)) {
                     continue;
                 }
 

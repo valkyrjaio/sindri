@@ -31,6 +31,7 @@ use PhpParser\Node\Scalar\Float_;
 use PhpParser\Node\Scalar\Int_;
 use PhpParser\Node\Scalar\InterpolatedString;
 use PhpParser\Node\Scalar\String_;
+use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Namespace_;
@@ -336,16 +337,15 @@ abstract class AstReader
     /**
      * Collect all Attribute nodes on the given node whose resolved FQN matches $attributeFqn.
      *
-     * @param Node                  $node         Any node that carries attrGroups (Class_, ClassMethod, …)
-     * @param string                $attributeFqn Fully-qualified attribute class name
-     * @param array<string, string> $useMap
+     * @param Class_|ClassMethod|Param $node         Any node that carries attrGroups (Class_, ClassMethod, …)
+     * @param string                   $attributeFqn Fully-qualified attribute class name
+     * @param array<string, string>    $useMap
      *
      * @return Attribute[]
      */
-    protected function findAttributesOnNode(Node $node, string $attributeFqn, array $useMap, string $namespace): array
+    protected function findAttributesOnNode(Class_|ClassMethod|Param $node, string $attributeFqn, array $useMap, string $namespace): array
     {
-        /** @var AttributeGroup[] $attrGroups */
-        $attrGroups = $node->attrGroups ?? [];
+        $attrGroups = $node->attrGroups;
         $found      = [];
 
         foreach ($attrGroups as $group) {
@@ -492,9 +492,9 @@ abstract class AstReader
             return null;
         }
 
-        $classValue = $this->extractExprValue($classItem->value, $useMap, $namespace, $currentClass);
+        $classValue = $this->classConstFetchToFqn($classItem->value, $useMap, $namespace);
 
-        if (! is_string($classValue) || $classValue === '') {
+        if ($classValue === null) {
             return null;
         }
 
@@ -532,7 +532,7 @@ abstract class AstReader
             $value = $this->extractExprValue($item->value, $useMap, $namespace, $currentClass);
 
             if (is_string($value) && $value !== '') {
-                /** @var class-string */
+                /** @var class-string $value */
                 $classes[] = $value;
             }
         }

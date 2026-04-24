@@ -38,7 +38,6 @@ use Valkyrja\Http\Routing\Processor\Processor;
 
 use function constant;
 use function defined;
-use function is_string;
 
 /**
  * AST-based HTTP routing data file generator.
@@ -249,11 +248,11 @@ class AstHttpDataFileGenerator extends AstFileGenerator implements HttpDataFileG
         }
 
         $route = new DynamicRoute(
-            path: $data->path,
-            name: $data->name,
+            path: $data->path !== '' ? $data->path : '/',
+            name: $data->name !== '' ? $data->name : 'temp',
             regex: '',
             parameters: $parameters,
-            handler: static fn (): RouteContract => new Route(path: '/', name: '', handler: static fn () => null),
+            handler: static fn (): never => throw new \LogicException('unreachable'),
         );
 
         $processed = $this->processor->route($route);
@@ -276,9 +275,10 @@ class AstHttpDataFileGenerator extends AstFileGenerator implements HttpDataFileG
         $regex = $data->regex;
 
         if (str_contains($regex, '::') && defined($regex)) {
+            /** @var string $resolved */
             $resolved = constant($regex);
 
-            if (is_string($resolved)) {
+            if ($resolved !== '') {
                 $regex = $resolved;
             }
         }

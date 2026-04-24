@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sindri\Ast;
 
+use Override;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Array_;
@@ -41,6 +42,7 @@ use function dirname;
  */
 class ConfigReader extends AstReader implements ConfigReaderContract
 {
+    #[Override]
     public function readFile(string $filePath): ConfigResult
     {
         $stmts = $this->parseFileToStmts($filePath);
@@ -77,17 +79,22 @@ class ConfigReader extends AstReader implements ConfigReaderContract
         // The raw dir from the config is the app root (not the PSR-4 root).
         // Use it only to resolve relative dataPath values.
         $appRoot  = $this->resolvePathExpr($this->findNamedArgValue($args, 'dir'), $fileDir);
-        $dataPath = $this->extractStringNamedArg($args, 'dataPath');
+        $dataPath      = $this->extractStringNamedArg($args, 'dataPath');
+        $dataNamespace = $this->extractStringNamedArg($args, 'dataNamespace');
 
         if ($dataPath !== '' && ! str_starts_with($dataPath, '/')) {
             $dataPath = rtrim($appRoot, '/') . '/' . $dataPath;
+        }
+
+        if ($baseNamespace === '' || $srcDir === '' || $dataPath === '' || $dataNamespace === '') {
+            return new ConfigResult();
         }
 
         return new ConfigResult(
             namespace: $baseNamespace,
             dir: $srcDir,
             dataPath: $dataPath,
-            dataNamespace: $this->extractStringNamedArg($args, 'dataNamespace'),
+            dataNamespace: $dataNamespace,
             providers: $this->extractClassListNamedArg($args, 'providers', $useMap, $namespace),
         );
     }
@@ -133,8 +140,7 @@ class ConfigReader extends AstReader implements ConfigReaderContract
     protected function findNamedArgValue(array $args, string $name): Node|null
     {
         foreach ($args as $arg) {
-            if ($arg instanceof Arg
-                && $arg->name instanceof Identifier
+            if ($arg->name instanceof Identifier
                 && $arg->name->toString() === $name
             ) {
                 return $arg->value;
@@ -185,7 +191,9 @@ class ConfigReader extends AstReader implements ConfigReaderContract
             $right = $this->resolvePathExpr($expr->right, $fileDir);
             $path  = $left . $right;
 
-            return realpath($path) ?: $path;
+            $realpath = realpath($path);
+
+            return $realpath !== false ? $realpath : $path;
         }
 
         return '';

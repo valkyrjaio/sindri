@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sindri\Ast;
 
+use Override;
 use PhpParser\Node\Arg;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
@@ -20,6 +21,7 @@ use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Name;
+use PhpParser\Node\VariadicPlaceholder;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use Sindri\Ast\Abstract\AstReader;
@@ -61,6 +63,7 @@ use function is_string;
  */
 class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeReaderContract
 {
+    #[Override]
     public function readFile(string $filePath): HttpRouteAttributeResult
     {
         $stmts = $this->parseFileToStmts($filePath);
@@ -74,6 +77,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
             return new HttpRouteAttributeResult();
         }
 
+        /** @var class-string $currentClass */
         $currentClass = $namespace !== ''
             ? $namespace . '\\' . ($class->name?->toString() ?? '')
             : ($class->name?->toString() ?? '');
@@ -330,6 +334,7 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
             }
         }
 
+        /** @var class-string $currentClass */
         return new HandlerData(class: $currentClass, method: $method->name->toString());
     }
 
@@ -575,8 +580,8 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
     /**
      * Build an HttpParameterData from a #[Parameter] attribute argument list.
      *
-     * @param Arg[]                 $args
-     * @param array<string, string> $useMap
+     * @param array<array-key, Arg|VariadicPlaceholder> $args
+     * @param array<string, string>                     $useMap
      */
     protected function buildParameterData(
         array $args,
@@ -584,10 +589,12 @@ class HttpRouteAttributeReader extends AstReader implements HttpRouteAttributeRe
         string $namespace,
         string $currentClass,
     ): HttpParameterData|null {
+        /** @var Arg[] $args */
+        $args  = array_values(array_filter($args, static fn ($a): bool => $a instanceof Arg));
         $name  = $this->extractExprValue($this->getAttrArg($args, 'name', 0), $useMap, $namespace, $currentClass);
         $regex = $this->extractExprValue($this->getAttrArg($args, 'regex', 1), $useMap, $namespace, $currentClass);
 
-        if (! is_string($name) || $name === '' || ! is_string($regex)) {
+        if (! is_string($name) || $name === '' || ! is_string($regex) || $regex === '') {
             return null;
         }
 

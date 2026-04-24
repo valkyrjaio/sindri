@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sindri\Ast;
 
 use Override;
+use PhpParser\Node\Expr;
 use Sindri\Ast\Abstract\AstReader;
 use Sindri\Ast\Contract\RouteProviderReaderContract;
 use Sindri\Ast\Result\RouteProviderResult;
@@ -75,7 +76,7 @@ class RouteProviderReader extends AstReader implements RouteProviderReaderContra
      *
      * @param array<string, string> $useMap
      *
-     * @return list<object>
+     * @return Expr[]
      */
     protected function extractRoutes(mixed $method, array $useMap, string $namespace): array
     {
