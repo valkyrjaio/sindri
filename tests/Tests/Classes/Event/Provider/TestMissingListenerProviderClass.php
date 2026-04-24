@@ -25,7 +25,7 @@ final class TestMissingListenerProviderClass implements ListenerProviderContract
     #[Override]
     public static function getListenerClasses(): array
     {
-        /** @phpstan-ignore class.notFound */
+        /* @phpstan-ignore class.notFound */
         return [NonExistentListenerClass::class];
     }
 

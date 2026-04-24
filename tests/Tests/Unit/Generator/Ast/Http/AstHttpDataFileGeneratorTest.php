@@ -178,7 +178,7 @@ final class AstHttpDataFileGeneratorTest extends TestCase
                 handler: static fn (): never => throw new LogicException('unreachable'),
             ));
 
-        $generator = new class ($mockProcessor) extends AstHttpDataFileGenerator {
+        $generator = new class($mockProcessor) extends AstHttpDataFileGenerator {
             public function __construct(ProcessorContract $processor)
             {
                 parent::__construct(processor: $processor);

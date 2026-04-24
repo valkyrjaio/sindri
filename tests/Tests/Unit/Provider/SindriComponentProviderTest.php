@@ -24,7 +24,7 @@ final class SindriComponentProviderTest extends TestCase
 {
     public function testGetComponentProvidersReturnsEmptyArray(): void
     {
-        $app    = $this->createStub(ApplicationContract::class);
+        $app    = self::createStub(ApplicationContract::class);
         $result = SindriComponentProvider::getComponentProviders($app);
 
         self::assertSame([], $result);
@@ -32,7 +32,7 @@ final class SindriComponentProviderTest extends TestCase
 
     public function testGetContainerProvidersReturnsBothServiceProviders(): void
     {
-        $app    = $this->createStub(ApplicationContract::class);
+        $app    = self::createStub(ApplicationContract::class);
         $result = SindriComponentProvider::getContainerProviders($app);
 
         self::assertSame([SindriAstServiceProvider::class, SindriCommandServiceProvider::class], $result);
@@ -40,7 +40,7 @@ final class SindriComponentProviderTest extends TestCase
 
     public function testGetEventProvidersReturnsEmptyArray(): void
     {
-        $app    = $this->createStub(ApplicationContract::class);
+        $app    = self::createStub(ApplicationContract::class);
         $result = SindriComponentProvider::getEventProviders($app);
 
         self::assertSame([], $result);
@@ -48,7 +48,7 @@ final class SindriComponentProviderTest extends TestCase
 
     public function testGetCliProvidersReturnsSindriCliRouteProvider(): void
     {
-        $app    = $this->createStub(ApplicationContract::class);
+        $app    = self::createStub(ApplicationContract::class);
         $result = SindriComponentProvider::getCliProviders($app);
 
         self::assertSame([SindriCliRouteProvider::class], $result);
@@ -56,7 +56,7 @@ final class SindriComponentProviderTest extends TestCase
 
     public function testGetHttpProvidersReturnsEmptyArray(): void
     {
-        $app    = $this->createStub(ApplicationContract::class);
+        $app    = self::createStub(ApplicationContract::class);
         $result = SindriComponentProvider::getHttpProviders($app);
 
         self::assertSame([], $result);

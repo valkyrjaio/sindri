@@ -15,5 +15,5 @@ namespace Sindri\Tests\Classes\Http;
 
 class TestRegexConstantsClass
 {
-    const ALPHA_REGEX = '[a-z]+';
+    public const ALPHA_REGEX = '[a-z]+';
 }

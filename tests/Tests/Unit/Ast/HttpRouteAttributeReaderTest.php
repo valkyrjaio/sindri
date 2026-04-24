@@ -76,7 +76,7 @@ final class HttpRouteAttributeReaderTest extends TestCase
 
         self::assertArrayHasKey('test.route', $result->routeData);
         self::assertSame('/test', $result->routeData['test.route']->path);
-        self::assertSame(false, $result->routeData['test.route']->isDynamic);
+        self::assertFalse($result->routeData['test.route']->isDynamic);
     }
 
     public function testReadFileExtractsRouteDataForDynamicRoute(): void
@@ -85,7 +85,7 @@ final class HttpRouteAttributeReaderTest extends TestCase
 
         self::assertArrayHasKey('test.dynamic', $result->routeData);
         self::assertSame('/test/{id}', $result->routeData['test.dynamic']->path);
-        self::assertSame(true, $result->routeData['test.dynamic']->isDynamic);
+        self::assertTrue($result->routeData['test.dynamic']->isDynamic);
     }
 
     public function testReadFileExtractsDynamicRouteParameters(): void

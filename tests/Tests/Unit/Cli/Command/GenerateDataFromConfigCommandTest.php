@@ -42,13 +42,13 @@ final class GenerateDataFromConfigCommandTest extends TestCase
 
     public function testGetConfigFilePathDelegatesToRouteArgument(): void
     {
-        $argument = $this->createStub(ArgumentParameter::class);
+        $argument = self::createStub(ArgumentParameter::class);
         $argument->method('getFirstValue')->willReturn('/path/to/config.php');
 
-        $route = $this->createStub(RouteContract::class);
+        $route = self::createStub(RouteContract::class);
         $route->method('getArgument')->willReturn($argument);
 
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
+        $outputFactory = self::createStub(OutputFactoryContract::class);
 
         $command = new class($route, $outputFactory) extends GenerateDataFromConfigCommand {
             #[Override]
@@ -69,15 +69,15 @@ final class GenerateDataFromConfigCommandTest extends TestCase
         mkdir($tmpDir);
 
         // A chainable OutputContract stub
-        $output = $this->createStub(OutputContract::class);
+        $output = self::createStub(OutputContract::class);
         $output->method('withAddedMessages')->willReturnSelf();
         $output->method('writeMessages')->willReturnSelf();
 
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
+        $outputFactory = self::createStub(OutputFactoryContract::class);
         $outputFactory->method('createOutput')->willReturn($output);
 
         // ConfigReader stub returns an empty-providers config pointing at tmp dir
-        $configReader = $this->createStub(ConfigReaderContract::class);
+        $configReader = self::createStub(ConfigReaderContract::class);
         $configReader->method('readFile')->willReturn(new ConfigResult(
             namespace: 'App',
             dir: $tmpDir,
@@ -86,10 +86,10 @@ final class GenerateDataFromConfigCommandTest extends TestCase
             providers: [],
         ));
 
-        $argument = $this->createStub(ArgumentParameter::class);
+        $argument = self::createStub(ArgumentParameter::class);
         $argument->method('getFirstValue')->willReturn('/irrelevant/config.php');
 
-        $route = $this->createStub(RouteContract::class);
+        $route = self::createStub(RouteContract::class);
         $route->method('getArgument')->willReturn($argument);
 
         $command = new GenerateDataFromConfigCommand(

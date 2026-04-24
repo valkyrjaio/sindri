@@ -18,7 +18,6 @@ use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Scalar\String_;
-use PhpParser\Node\Stmt\ClassMethod;
 use Sindri\Ast\ConfigReader;
 use Sindri\Tests\Classes\Config\Provider\TestComponentProviderClass;
 use Sindri\Tests\Unit\Abstract\TestCase;

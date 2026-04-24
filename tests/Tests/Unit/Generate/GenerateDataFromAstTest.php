@@ -37,7 +37,7 @@ final class GenerateDataFromAstTest extends TestCase
 
     public function testFqnToFilePathForInNamespaceClass(): void
     {
-        $walker = $this->makeWalker($this->createStub(OutputFactoryContract::class));
+        $walker = $this->makeWalker(self::createStub(OutputFactoryContract::class));
 
         $result = $walker->callFqnToFilePath('App\\Provider\\SomeProvider', 'App', '/var/www/src');
 
@@ -46,7 +46,7 @@ final class GenerateDataFromAstTest extends TestCase
 
     public function testFqnToFilePathForOutOfNamespaceInternalClassReturnsEmpty(): void
     {
-        $walker = $this->makeWalker($this->createStub(OutputFactoryContract::class));
+        $walker = $this->makeWalker(self::createStub(OutputFactoryContract::class));
 
         // stdClass is a built-in — ReflectionClass::getFileName() returns false.
         $result = $walker->callFqnToFilePath('stdClass', 'App', '/var/www/src');
@@ -56,7 +56,7 @@ final class GenerateDataFromAstTest extends TestCase
 
     public function testFqnToFilePathForNonExistentClassReturnsEmptyString(): void
     {
-        $walker = $this->makeWalker($this->createStub(OutputFactoryContract::class));
+        $walker = $this->makeWalker(self::createStub(OutputFactoryContract::class));
 
         $result = $walker->callFqnToFilePath('NonExistent\\Class\\DoesNotExist', 'Other', '/var/www/src');
 
@@ -69,7 +69,7 @@ final class GenerateDataFromAstTest extends TestCase
 
     public function testWalkProviderWithMissingFileReturnsEmptyResult(): void
     {
-        $walker = $this->makeWalker($this->createStub(OutputFactoryContract::class));
+        $walker = $this->makeWalker(self::createStub(OutputFactoryContract::class));
 
         $config = new ConfigResult(namespace: 'App', dir: '/nonexistent/dir');
         $result = $walker->callWalkProvider('App\\Provider\\Missing', $config);
@@ -82,7 +82,7 @@ final class GenerateDataFromAstTest extends TestCase
 
     public function testWalkProviderSkipsAlreadyVisitedClass(): void
     {
-        $walker = $this->makeWalker($this->createStub(OutputFactoryContract::class));
+        $walker = $this->makeWalker(self::createStub(OutputFactoryContract::class));
 
         $config  = new ConfigResult(namespace: 'App', dir: '/nonexistent/dir');
         $visited = ['App\\Provider\\Missing' => true];
@@ -99,7 +99,7 @@ final class GenerateDataFromAstTest extends TestCase
     public function testAddMessagesForGenerateStatusSuccess(): void
     {
         $output = $this->buildChainableOutputStub();
-        $walker = $this->makeWalker($this->createStub(OutputFactoryContract::class));
+        $walker = $this->makeWalker(self::createStub(OutputFactoryContract::class));
 
         $result = $walker->callAddMessagesForGenerateStatus($output, GenerateStatus::SUCCESS);
 
@@ -109,7 +109,7 @@ final class GenerateDataFromAstTest extends TestCase
     public function testAddMessagesForGenerateStatusSkipped(): void
     {
         $output = $this->buildChainableOutputStub();
-        $walker = $this->makeWalker($this->createStub(OutputFactoryContract::class));
+        $walker = $this->makeWalker(self::createStub(OutputFactoryContract::class));
 
         $result = $walker->callAddMessagesForGenerateStatus($output, GenerateStatus::SKIPPED);
 
@@ -119,7 +119,7 @@ final class GenerateDataFromAstTest extends TestCase
     public function testAddMessagesForGenerateStatusFailure(): void
     {
         $output = $this->buildChainableOutputStub();
-        $walker = $this->makeWalker($this->createStub(OutputFactoryContract::class));
+        $walker = $this->makeWalker(self::createStub(OutputFactoryContract::class));
 
         $result = $walker->callAddMessagesForGenerateStatus($output, GenerateStatus::FAILURE);
 
@@ -135,8 +135,8 @@ final class GenerateDataFromAstTest extends TestCase
         $tmpDir = sys_get_temp_dir() . '/' . $this->name();
         mkdir($tmpDir);
 
-        $output = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
         $outputFactory->method('createOutput')->willReturn($output);
 
         $config = new ConfigResult(
@@ -199,12 +199,378 @@ final class GenerateDataFromAstTest extends TestCase
     }
 
     // -----------------------------------------------------------------------
+    // generate*Data with real fixture providers
+    // -----------------------------------------------------------------------
+
+    public function testGenerateContainerDataWithRealProvider(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        /** @var non-empty-string $classesDir */
+        $classesDir = realpath(__DIR__ . '/../../Classes/Provider/Sub');
+
+        $config = new ConfigResult(
+            namespace: 'Sindri\\Tests\\Classes\\Provider\\Sub',
+            dir: $classesDir,
+            dataPath: $tmpDir,
+            dataNamespace: 'Sindri\\Tests\\Classes\\Provider\\Sub\\Data',
+        );
+
+        $result = $walker->callGenerateContainerData(
+            [TestServiceProviderClass::class],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateEventDataWithRealProvider(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        /** @var non-empty-string $eventDir */
+        $eventDir = realpath(__DIR__ . '/../../Classes/Event');
+
+        $config = new ConfigResult(
+            namespace: 'Sindri\\Tests\\Classes\\Event',
+            dir: $eventDir,
+            dataPath: $tmpDir,
+            dataNamespace: 'Sindri\\Tests\\Classes\\Event\\Data',
+        );
+
+        $result = $walker->callGenerateEventData(
+            [TestListenerProviderClass::class],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateCliDataWithRealProvider(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        /** @var non-empty-string $cliDir */
+        $cliDir = realpath(__DIR__ . '/../../Classes/Cli');
+
+        $config = new ConfigResult(
+            namespace: 'Sindri\\Tests\\Classes\\Cli',
+            dir: $cliDir,
+            dataPath: $tmpDir,
+            dataNamespace: 'Sindri\\Tests\\Classes\\Cli\\Data',
+        );
+
+        $result = $walker->callGenerateCliData(
+            [CliTestRouteProviderClass::class],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateHttpDataWithRealProvider(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        /** @var non-empty-string $httpDir */
+        $httpDir = realpath(__DIR__ . '/../../Classes/Http');
+
+        $config = new ConfigResult(
+            namespace: 'Sindri\\Tests\\Classes\\Http',
+            dir: $httpDir,
+            dataPath: $tmpDir,
+            dataNamespace: 'Sindri\\Tests\\Classes\\Http\\Data',
+        );
+
+        $result = $walker->callGenerateHttpData(
+            [HttpTestRouteProviderClass::class],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateContainerDataWithMissingProviderFileSkips(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        $config = new ConfigResult(
+            namespace: 'App',
+            dir: '/nonexistent',
+            dataPath: $tmpDir,
+            dataNamespace: 'App\\Data',
+        );
+
+        $result = $walker->callGenerateContainerData(
+            ['App\\Provider\\Missing'],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateEventDataWithMissingProviderFileSkips(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        $config = new ConfigResult(
+            namespace: 'App',
+            dir: '/nonexistent',
+            dataPath: $tmpDir,
+            dataNamespace: 'App\\Data',
+        );
+
+        $result = $walker->callGenerateEventData(
+            ['App\\Provider\\Missing'],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateEventDataWithMissingListenerClassFileSkips(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        /** @var non-empty-string $eventDir */
+        $eventDir = realpath(__DIR__ . '/../../Classes/Event');
+
+        $config = new ConfigResult(
+            namespace: 'Sindri\\Tests\\Classes\\Event',
+            dir: $eventDir,
+            dataPath: $tmpDir,
+            dataNamespace: 'Sindri\\Tests\\Classes\\Event\\Data',
+        );
+
+        $result = $walker->callGenerateEventData(
+            [TestMissingListenerProviderClass::class],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateCliDataWithMissingProviderFileSkips(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        $config = new ConfigResult(
+            namespace: 'App',
+            dir: '/nonexistent',
+            dataPath: $tmpDir,
+            dataNamespace: 'App\\Data',
+        );
+
+        $result = $walker->callGenerateCliData(
+            ['App\\Provider\\Missing'],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateCliDataWithMissingControllerClassFileSkips(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        /** @var non-empty-string $cliDir */
+        $cliDir = realpath(__DIR__ . '/../../Classes/Cli');
+
+        $config = new ConfigResult(
+            namespace: 'Sindri\\Tests\\Classes\\Cli',
+            dir: $cliDir,
+            dataPath: $tmpDir,
+            dataNamespace: 'Sindri\\Tests\\Classes\\Cli\\Data',
+        );
+
+        $result = $walker->callGenerateCliData(
+            [CliTestMissingControllerProviderClass::class],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateHttpDataWithMissingProviderFileSkips(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        $config = new ConfigResult(
+            namespace: 'App',
+            dir: '/nonexistent',
+            dataPath: $tmpDir,
+            dataNamespace: 'App\\Data',
+        );
+
+        $result = $walker->callGenerateHttpData(
+            ['App\\Provider\\Missing'],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateHttpDataWithMissingControllerClassFileSkips(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        /** @var non-empty-string $httpDir */
+        $httpDir = realpath(__DIR__ . '/../../Classes/Http');
+
+        $config = new ConfigResult(
+            namespace: 'Sindri\\Tests\\Classes\\Http',
+            dir: $httpDir,
+            dataPath: $tmpDir,
+            dataNamespace: 'Sindri\\Tests\\Classes\\Http\\Data',
+        );
+
+        $result = $walker->callGenerateHttpData(
+            [HttpTestMissingControllerProviderClass::class],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
 
     private function buildChainableOutputStub(): OutputContract
     {
-        $output = $this->createStub(OutputContract::class);
+        $output = self::createStub(OutputContract::class);
         $output->method('withAddedMessages')->willReturnSelf();
         $output->method('writeMessages')->willReturnSelf();
 
@@ -281,371 +647,5 @@ final class GenerateDataFromAstTest extends TestCase
                 return $this->generateHttpData($httpRouteProviders, $config, $output);
             }
         };
-    }
-
-    // -----------------------------------------------------------------------
-    // generate*Data with real fixture providers
-    // -----------------------------------------------------------------------
-
-    public function testGenerateContainerDataWithRealProvider(): void
-    {
-        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
-        mkdir($tmpDir);
-
-        $output        = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
-        $walker        = $this->makeWalker($outputFactory);
-
-        /** @var non-empty-string $classesDir */
-        $classesDir = realpath(__DIR__ . '/../../Classes/Provider/Sub');
-
-        $config = new ConfigResult(
-            namespace: 'Sindri\\Tests\\Classes\\Provider\\Sub',
-            dir: $classesDir,
-            dataPath: $tmpDir,
-            dataNamespace: 'Sindri\\Tests\\Classes\\Provider\\Sub\\Data',
-        );
-
-        $result = $walker->callGenerateContainerData(
-            [TestServiceProviderClass::class],
-            $config,
-            $output,
-        );
-
-        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
-            @unlink($f);
-        }
-
-        @rmdir($tmpDir);
-
-        self::assertInstanceOf(OutputContract::class, $result);
-    }
-
-    public function testGenerateEventDataWithRealProvider(): void
-    {
-        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
-        mkdir($tmpDir);
-
-        $output        = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
-        $walker        = $this->makeWalker($outputFactory);
-
-        /** @var non-empty-string $eventDir */
-        $eventDir = realpath(__DIR__ . '/../../Classes/Event');
-
-        $config = new ConfigResult(
-            namespace: 'Sindri\\Tests\\Classes\\Event',
-            dir: $eventDir,
-            dataPath: $tmpDir,
-            dataNamespace: 'Sindri\\Tests\\Classes\\Event\\Data',
-        );
-
-        $result = $walker->callGenerateEventData(
-            [TestListenerProviderClass::class],
-            $config,
-            $output,
-        );
-
-        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
-            @unlink($f);
-        }
-
-        @rmdir($tmpDir);
-
-        self::assertInstanceOf(OutputContract::class, $result);
-    }
-
-    public function testGenerateCliDataWithRealProvider(): void
-    {
-        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
-        mkdir($tmpDir);
-
-        $output        = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
-        $walker        = $this->makeWalker($outputFactory);
-
-        /** @var non-empty-string $cliDir */
-        $cliDir = realpath(__DIR__ . '/../../Classes/Cli');
-
-        $config = new ConfigResult(
-            namespace: 'Sindri\\Tests\\Classes\\Cli',
-            dir: $cliDir,
-            dataPath: $tmpDir,
-            dataNamespace: 'Sindri\\Tests\\Classes\\Cli\\Data',
-        );
-
-        $result = $walker->callGenerateCliData(
-            [CliTestRouteProviderClass::class],
-            $config,
-            $output,
-        );
-
-        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
-            @unlink($f);
-        }
-
-        @rmdir($tmpDir);
-
-        self::assertInstanceOf(OutputContract::class, $result);
-    }
-
-    public function testGenerateHttpDataWithRealProvider(): void
-    {
-        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
-        mkdir($tmpDir);
-
-        $output        = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
-        $walker        = $this->makeWalker($outputFactory);
-
-        /** @var non-empty-string $httpDir */
-        $httpDir = realpath(__DIR__ . '/../../Classes/Http');
-
-        $config = new ConfigResult(
-            namespace: 'Sindri\\Tests\\Classes\\Http',
-            dir: $httpDir,
-            dataPath: $tmpDir,
-            dataNamespace: 'Sindri\\Tests\\Classes\\Http\\Data',
-        );
-
-        $result = $walker->callGenerateHttpData(
-            [HttpTestRouteProviderClass::class],
-            $config,
-            $output,
-        );
-
-        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
-            @unlink($f);
-        }
-
-        @rmdir($tmpDir);
-
-        self::assertInstanceOf(OutputContract::class, $result);
-    }
-
-    public function testGenerateContainerDataWithMissingProviderFileSkips(): void
-    {
-        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
-        mkdir($tmpDir);
-
-        $output        = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
-        $walker        = $this->makeWalker($outputFactory);
-
-        $config = new ConfigResult(
-            namespace: 'App',
-            dir: '/nonexistent',
-            dataPath: $tmpDir,
-            dataNamespace: 'App\\Data',
-        );
-
-        $result = $walker->callGenerateContainerData(
-            ['App\\Provider\\Missing'],
-            $config,
-            $output,
-        );
-
-        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
-            @unlink($f);
-        }
-
-        @rmdir($tmpDir);
-
-        self::assertInstanceOf(OutputContract::class, $result);
-    }
-
-    public function testGenerateEventDataWithMissingProviderFileSkips(): void
-    {
-        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
-        mkdir($tmpDir);
-
-        $output        = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
-        $walker        = $this->makeWalker($outputFactory);
-
-        $config = new ConfigResult(
-            namespace: 'App',
-            dir: '/nonexistent',
-            dataPath: $tmpDir,
-            dataNamespace: 'App\\Data',
-        );
-
-        $result = $walker->callGenerateEventData(
-            ['App\\Provider\\Missing'],
-            $config,
-            $output,
-        );
-
-        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
-            @unlink($f);
-        }
-
-        @rmdir($tmpDir);
-
-        self::assertInstanceOf(OutputContract::class, $result);
-    }
-
-    public function testGenerateEventDataWithMissingListenerClassFileSkips(): void
-    {
-        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
-        mkdir($tmpDir);
-
-        $output        = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
-        $walker        = $this->makeWalker($outputFactory);
-
-        /** @var non-empty-string $eventDir */
-        $eventDir = realpath(__DIR__ . '/../../Classes/Event');
-
-        $config = new ConfigResult(
-            namespace: 'Sindri\\Tests\\Classes\\Event',
-            dir: $eventDir,
-            dataPath: $tmpDir,
-            dataNamespace: 'Sindri\\Tests\\Classes\\Event\\Data',
-        );
-
-        $result = $walker->callGenerateEventData(
-            [TestMissingListenerProviderClass::class],
-            $config,
-            $output,
-        );
-
-        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
-            @unlink($f);
-        }
-
-        @rmdir($tmpDir);
-
-        self::assertInstanceOf(OutputContract::class, $result);
-    }
-
-    public function testGenerateCliDataWithMissingProviderFileSkips(): void
-    {
-        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
-        mkdir($tmpDir);
-
-        $output        = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
-        $walker        = $this->makeWalker($outputFactory);
-
-        $config = new ConfigResult(
-            namespace: 'App',
-            dir: '/nonexistent',
-            dataPath: $tmpDir,
-            dataNamespace: 'App\\Data',
-        );
-
-        $result = $walker->callGenerateCliData(
-            ['App\\Provider\\Missing'],
-            $config,
-            $output,
-        );
-
-        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
-            @unlink($f);
-        }
-
-        @rmdir($tmpDir);
-
-        self::assertInstanceOf(OutputContract::class, $result);
-    }
-
-    public function testGenerateCliDataWithMissingControllerClassFileSkips(): void
-    {
-        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
-        mkdir($tmpDir);
-
-        $output        = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
-        $walker        = $this->makeWalker($outputFactory);
-
-        /** @var non-empty-string $cliDir */
-        $cliDir = realpath(__DIR__ . '/../../Classes/Cli');
-
-        $config = new ConfigResult(
-            namespace: 'Sindri\\Tests\\Classes\\Cli',
-            dir: $cliDir,
-            dataPath: $tmpDir,
-            dataNamespace: 'Sindri\\Tests\\Classes\\Cli\\Data',
-        );
-
-        $result = $walker->callGenerateCliData(
-            [CliTestMissingControllerProviderClass::class],
-            $config,
-            $output,
-        );
-
-        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
-            @unlink($f);
-        }
-
-        @rmdir($tmpDir);
-
-        self::assertInstanceOf(OutputContract::class, $result);
-    }
-
-    public function testGenerateHttpDataWithMissingProviderFileSkips(): void
-    {
-        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
-        mkdir($tmpDir);
-
-        $output        = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
-        $walker        = $this->makeWalker($outputFactory);
-
-        $config = new ConfigResult(
-            namespace: 'App',
-            dir: '/nonexistent',
-            dataPath: $tmpDir,
-            dataNamespace: 'App\\Data',
-        );
-
-        $result = $walker->callGenerateHttpData(
-            ['App\\Provider\\Missing'],
-            $config,
-            $output,
-        );
-
-        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
-            @unlink($f);
-        }
-
-        @rmdir($tmpDir);
-
-        self::assertInstanceOf(OutputContract::class, $result);
-    }
-
-    public function testGenerateHttpDataWithMissingControllerClassFileSkips(): void
-    {
-        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
-        mkdir($tmpDir);
-
-        $output        = $this->buildChainableOutputStub();
-        $outputFactory = $this->createStub(OutputFactoryContract::class);
-        $walker        = $this->makeWalker($outputFactory);
-
-        /** @var non-empty-string $httpDir */
-        $httpDir = realpath(__DIR__ . '/../../Classes/Http');
-
-        $config = new ConfigResult(
-            namespace: 'Sindri\\Tests\\Classes\\Http',
-            dir: $httpDir,
-            dataPath: $tmpDir,
-            dataNamespace: 'Sindri\\Tests\\Classes\\Http\\Data',
-        );
-
-        $result = $walker->callGenerateHttpData(
-            [HttpTestMissingControllerProviderClass::class],
-            $config,
-            $output,
-        );
-
-        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
-            @unlink($f);
-        }
-
-        @rmdir($tmpDir);
-
-        self::assertInstanceOf(OutputContract::class, $result);
     }
 }

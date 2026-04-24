@@ -37,13 +37,13 @@ final class HttpParameterDataTest extends TestCase
     {
         $data = new HttpParameterData(name: 'id', regex: '[0-9]+');
 
-        self::assertSame(false, $data->isOptional);
+        self::assertFalse($data->isOptional);
     }
 
     public function testConstructorDefaultsShouldCaptureToTrue(): void
     {
         $data = new HttpParameterData(name: 'id', regex: '[0-9]+');
 
-        self::assertSame(true, $data->shouldCapture);
+        self::assertTrue($data->shouldCapture);
     }
 }

@@ -124,7 +124,7 @@ final class ListenerAttributeReaderTest extends TestCase
         /** @var array<string, ListenerData> $captured */
         $captured = [];
 
-        $reader = new class ($captured) extends ListenerAttributeReader {
+        $reader = new class($captured) extends ListenerAttributeReader {
             /** @param array<string, ListenerData> $captured */
             public function __construct(private array &$captured)
             {
@@ -152,7 +152,7 @@ final class ListenerAttributeReaderTest extends TestCase
         /** @var array<string, ListenerData> $captured */
         $captured = [];
 
-        $reader = new class ($captured) extends ListenerAttributeReader {
+        $reader = new class($captured) extends ListenerAttributeReader {
             /** @param array<string, ListenerData> $captured */
             public function __construct(private array &$captured)
             {

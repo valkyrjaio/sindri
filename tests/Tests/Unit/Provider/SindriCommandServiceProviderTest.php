@@ -63,27 +63,27 @@ final class SindriCommandServiceProviderTest extends TestCase
     public function testPublishGenerateDataFromConfigCommandRegistersInstance(): void
     {
         $singletons = [
-            RouteContract::class                    => $this->createStub(RouteContract::class),
-            OutputFactoryContract::class            => $this->createStub(OutputFactoryContract::class),
-            ConfigReaderContract::class             => new ConfigReader(),
-            ComponentProviderReaderContract::class  => new ComponentProviderReader(),
-            RouteProviderReaderContract::class      => new RouteProviderReader(),
-            ListenerProviderReaderContract::class   => new ListenerProviderReader(),
-            ServiceProviderReaderContract::class    => new ServiceProviderReader(),
-            CliRouteAttributeReaderContract::class  => new CliRouteAttributeReader(),
-            HttpRouteAttributeReaderContract::class => new HttpRouteAttributeReader(),
-            ListenerAttributeReaderContract::class  => new ListenerAttributeReader(),
+            RouteContract::class                      => self::createStub(RouteContract::class),
+            OutputFactoryContract::class              => self::createStub(OutputFactoryContract::class),
+            ConfigReaderContract::class               => new ConfigReader(),
+            ComponentProviderReaderContract::class    => new ComponentProviderReader(),
+            RouteProviderReaderContract::class        => new RouteProviderReader(),
+            ListenerProviderReaderContract::class     => new ListenerProviderReader(),
+            ServiceProviderReaderContract::class      => new ServiceProviderReader(),
+            CliRouteAttributeReaderContract::class    => new CliRouteAttributeReader(),
+            HttpRouteAttributeReaderContract::class   => new HttpRouteAttributeReader(),
+            ListenerAttributeReaderContract::class    => new ListenerAttributeReader(),
             ContainerDataFileGeneratorContract::class => new AstContainerDataFileGenerator(),
-            EventDataFileGeneratorContract::class   => new AstEventDataFileGenerator(),
-            CliDataFileGeneratorContract::class     => new AstCliDataFileGenerator(),
-            HttpDataFileGeneratorContract::class    => new AstHttpDataFileGenerator(),
+            EventDataFileGeneratorContract::class     => new AstEventDataFileGenerator(),
+            CliDataFileGeneratorContract::class       => new AstCliDataFileGenerator(),
+            HttpDataFileGeneratorContract::class      => new AstHttpDataFileGenerator(),
         ];
 
         $container = $this->createMock(ContainerContract::class);
         $container->method('getSingleton')->willReturnCallback(
             static fn (string $id): object => $singletons[$id]
         );
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 GenerateDataFromConfigCommand::class,

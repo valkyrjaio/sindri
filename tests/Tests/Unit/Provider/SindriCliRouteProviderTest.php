@@ -37,11 +37,11 @@ final class SindriCliRouteProviderTest extends TestCase
 
     public function testCliGenerateDataHandlerDelegatesToCommand(): void
     {
-        $output  = $this->createStub(OutputContract::class);
+        $output  = self::createStub(OutputContract::class);
         $command = $this->createMock(GenerateDataFromConfigCommand::class);
-        $command->expects(self::once())->method('run')->willReturn($output);
+        $command->expects($this->once())->method('run')->willReturn($output);
 
-        $container = $this->createStub(ContainerContract::class);
+        $container = self::createStub(ContainerContract::class);
         $container->method('getSingleton')->willReturn($command);
 
         $result = SindriCliRouteProvider::cliGenerateDataHandler($container);

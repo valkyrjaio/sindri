@@ -63,7 +63,7 @@ final class HttpRouteDataTest extends TestCase
     {
         $data = new HttpRouteData(path: '/test', name: 'test.route');
 
-        self::assertSame(false, $data->isDynamic);
+        self::assertFalse($data->isDynamic);
     }
 
     public function testConstructorDefaultsParametersToEmpty(): void

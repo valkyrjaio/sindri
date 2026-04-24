@@ -137,7 +137,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishCliRouteAttributeReaderRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 CliRouteAttributeReaderContract::class,
@@ -150,7 +150,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishComponentProviderReaderRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 ComponentProviderReaderContract::class,
@@ -163,7 +163,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishConfigReaderRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 ConfigReaderContract::class,
@@ -176,7 +176,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishHttpRouteAttributeReaderRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 HttpRouteAttributeReaderContract::class,
@@ -189,7 +189,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishListenerAttributeReaderRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 ListenerAttributeReaderContract::class,
@@ -202,7 +202,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishListenerProviderReaderRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 ListenerProviderReaderContract::class,
@@ -215,7 +215,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishRouteProviderReaderRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 RouteProviderReaderContract::class,
@@ -228,7 +228,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishServiceProviderReaderRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 ServiceProviderReaderContract::class,
@@ -241,7 +241,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishCliDataFileGeneratorRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 CliDataFileGeneratorContract::class,
@@ -254,7 +254,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishContainerDataFileGeneratorRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 ContainerDataFileGeneratorContract::class,
@@ -267,7 +267,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishEventDataFileGeneratorRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 EventDataFileGeneratorContract::class,
@@ -280,7 +280,7 @@ final class SindriAstServiceProviderTest extends TestCase
     public function testPublishHttpDataFileGeneratorRegistersInstance(): void
     {
         $container = $this->createMock(ContainerContract::class);
-        $container->expects(self::once())
+        $container->expects($this->once())
             ->method('setSingleton')
             ->with(
                 HttpDataFileGeneratorContract::class,

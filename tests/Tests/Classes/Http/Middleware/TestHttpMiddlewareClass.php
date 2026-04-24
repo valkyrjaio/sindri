@@ -29,12 +29,7 @@ use Valkyrja\Http\Middleware\Handler\Contract\TerminatedHandlerContract;
 use Valkyrja\Http\Middleware\Handler\Contract\ThrowableCaughtHandlerContract;
 use Valkyrja\Http\Routing\Data\Contract\RouteContract;
 
-class TestHttpMiddlewareClass implements
-    RouteMatchedMiddlewareContract,
-    RouteDispatchedMiddlewareContract,
-    ThrowableCaughtMiddlewareContract,
-    SendingResponseMiddlewareContract,
-    TerminatedMiddlewareContract
+class TestHttpMiddlewareClass implements RouteMatchedMiddlewareContract, RouteDispatchedMiddlewareContract, ThrowableCaughtMiddlewareContract, SendingResponseMiddlewareContract, TerminatedMiddlewareContract
 {
     public function routeMatched(
         ServerRequestContract $request,

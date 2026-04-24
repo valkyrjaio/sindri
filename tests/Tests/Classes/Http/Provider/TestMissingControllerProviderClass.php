@@ -25,7 +25,7 @@ final class TestMissingControllerProviderClass implements HttpRouteProviderContr
     #[Override]
     public static function getControllerClasses(): array
     {
-        /** @phpstan-ignore class.notFound */
+        /* @phpstan-ignore class.notFound */
         return [NonExistentControllerClass::class];
     }
 
