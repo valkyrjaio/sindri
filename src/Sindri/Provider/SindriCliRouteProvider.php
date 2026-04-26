@@ -16,6 +16,7 @@ namespace Sindri\Provider;
 use Override;
 use Sindri\Cli\Command\GenerateDataFromConfigCommand;
 use Valkyrja\Cli\Interaction\Output\Contract\OutputContract;
+use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
 use Valkyrja\Cli\Routing\Provider\Contract\CliRouteProviderContract;
 use Valkyrja\Container\Manager\Contract\ContainerContract;
 
@@ -44,7 +45,7 @@ class SindriCliRouteProvider implements CliRouteProviderContract
     /**
      * Handler for the CliGenerateDataFromAstCommand command.
      */
-    public static function cliGenerateDataHandler(ContainerContract $container): OutputContract
+    public static function cliGenerateDataHandler(ContainerContract $container, RouteContract $route): OutputContract
     {
         return $container->getSingleton(GenerateDataFromConfigCommand::class)->run();
     }

@@ -332,12 +332,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/valkyrjaio/valkyrja-php.git",
-                "reference": "c79de288fedf90cc708a91975b53abb40e22c8e0"
+                "reference": "aef033cde6b6dcf4214c48c1fd55c665401e36c0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/valkyrjaio/valkyrja-php/zipball/c79de288fedf90cc708a91975b53abb40e22c8e0",
-                "reference": "c79de288fedf90cc708a91975b53abb40e22c8e0",
+                "url": "https://api.github.com/repos/valkyrjaio/valkyrja-php/zipball/aef033cde6b6dcf4214c48c1fd55c665401e36c0",
+                "reference": "aef033cde6b6dcf4214c48c1fd55c665401e36c0",
                 "shasum": ""
             },
             "require": {

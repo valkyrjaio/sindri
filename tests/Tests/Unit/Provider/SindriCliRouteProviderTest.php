@@ -17,6 +17,7 @@ use Sindri\Cli\Command\GenerateDataFromConfigCommand;
 use Sindri\Provider\SindriCliRouteProvider;
 use Sindri\Tests\Unit\Abstract\TestCase;
 use Valkyrja\Cli\Interaction\Output\Contract\OutputContract;
+use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
 use Valkyrja\Container\Manager\Contract\ContainerContract;
 
 final class SindriCliRouteProviderTest extends TestCase
@@ -44,7 +45,7 @@ final class SindriCliRouteProviderTest extends TestCase
         $container = self::createStub(ContainerContract::class);
         $container->method('getSingleton')->willReturn($command);
 
-        $result = SindriCliRouteProvider::cliGenerateDataHandler($container);
+        $result = SindriCliRouteProvider::cliGenerateDataHandler($container, self::createStub(RouteContract::class));
 
         self::assertSame($output, $result);
     }
