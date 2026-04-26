@@ -1,6 +1,10 @@
 # Release Notes for 26.x
 
-## [Unreleased](https://github.com/valkyrjaio/sindri/compare/v26.1.0...26.x)
+## [Unreleased](https://github.com/valkyrjaio/sindri/compare/v26.1.1...26.x)
+
+## [v26.1.1](https://github.com/valkyrjaio/sindri/compare/v26.1.0...v26.1.1) - 2026-04-25
+
+* [Sindri] Emit constant references for route names, paths, and array keys by [@MelechMizrachi](https://github.com/MelechMizrachi) in https://github.com/valkyrjaio/sindri-php/pull/32
 
 ## [v26.1.0](https://github.com/valkyrjaio/sindri/compare/v26.0.0...v26.1.0) - 2026-04-25
 
