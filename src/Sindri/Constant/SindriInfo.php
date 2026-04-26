@@ -20,12 +20,12 @@ final class SindriInfo
      *
      * @var non-empty-string
      */
-    public const string VERSION = '26.0.0';
+    public const string VERSION = '26.1.0';
 
     /**
      * The Sindri package version build datetime.
      *
      * @var non-empty-string
      */
-    public const string VERSION_BUILD_DATE_TIME = 'April 23 2026 21:46:28 MST';
+    public const string VERSION_BUILD_DATE_TIME = 'April 25 2026 21:17:49 MST';
 }
