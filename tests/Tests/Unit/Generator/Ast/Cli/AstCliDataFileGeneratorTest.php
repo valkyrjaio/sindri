@@ -46,6 +46,17 @@ final class AstCliDataFileGeneratorTest extends TestCase
         self::assertStringContainsString("'test:route'", $contents);
     }
 
+    public function testGenerateClassContentsWithConstantKeyOutputsConstantReference(): void
+    {
+        $generator = new AstCliDataFileGenerator();
+        $contents  = $generator->generateClassContents([
+            'Valkyrja\\Cli\\Server\\Constant\\CommandName::HELP' => new String_('help-expr'),
+        ]);
+
+        self::assertStringContainsString('\\Valkyrja\\Cli\\Server\\Constant\\CommandName::HELP', $contents);
+        self::assertStringNotContainsString("'Valkyrja\\Cli\\Server\\Constant\\CommandName::HELP'", $contents);
+    }
+
     public function testGenerateFileReturnsSuccessOnNewFile(): void
     {
         $directory = sys_get_temp_dir();

@@ -116,9 +116,10 @@ class AstCliDataFileGenerator extends AstFileGenerator implements CliDataFileGen
         $routesContent = '';
 
         foreach ($routes as $key => $routeExpr) {
+            $keyPhp         = $this->printer->prettyPrintExpr($this->buildEnumCaseExpr($key));
             $routePhp       = $this->printer->prettyPrintExpr($routeExpr);
             $routesContent .= <<<PHP
-                '$key' => static fn (): \\$routeContract => $routePhp,
+                $keyPhp => static fn (): \\$routeContract => $routePhp,
 
                 PHP;
         }

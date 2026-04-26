@@ -13,12 +13,47 @@ declare(strict_types=1);
 
 namespace Sindri\Tests\Unit\Generator\Abstract;
 
+use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Scalar\String_;
 use Sindri\Generator\Abstract\AstFileGenerator;
 use Sindri\Generator\Enum\GenerateStatus;
 use Sindri\Tests\Unit\Abstract\TestCase;
 
 final class AstFileGeneratorTest extends TestCase
 {
+    // -------------------------------------------------------------------------
+    // buildEnumCaseExpr
+    // -------------------------------------------------------------------------
+
+    public function testBuildEnumCaseExprReturnsClassConstFetchForConstantReference(): void
+    {
+        $generator = new class extends AstFileGenerator {
+            public function call(string $value): mixed
+            {
+                return $this->buildEnumCaseExpr($value);
+            }
+        };
+
+        $result = $generator->call('Valkyrja\\Cli\\Server\\Constant\\CommandName::HELP');
+
+        self::assertInstanceOf(ClassConstFetch::class, $result);
+    }
+
+    public function testBuildEnumCaseExprReturnsStringNodeForPlainString(): void
+    {
+        $generator = new class extends AstFileGenerator {
+            public function call(string $value): mixed
+            {
+                return $this->buildEnumCaseExpr($value);
+            }
+        };
+
+        $result = $generator->call('plain-name');
+
+        self::assertInstanceOf(String_::class, $result);
+        self::assertSame('plain-name', $result->value);
+    }
+
     public function testWriteFileReturnsSuccessForNewFile(): void
     {
         $directory = sys_get_temp_dir();

@@ -227,7 +227,7 @@ class AstHttpDataFileGenerator extends AstFileGenerator implements HttpDataFileG
             $innerItems = [];
 
             foreach ($innerMap as $innerKey => $value) {
-                $innerItems[] = new ArrayItem(new String_($value), new String_($innerKey));
+                $innerItems[] = new ArrayItem($this->buildEnumCaseExpr($value), new String_($innerKey));
             }
 
             $outerItems[] = new ArrayItem(new Array_($innerItems), new String_($outerKey));
@@ -349,9 +349,10 @@ class AstHttpDataFileGenerator extends AstFileGenerator implements HttpDataFileG
                 );
             }
 
+            $keyPhp         = $this->printer->prettyPrintExpr($this->buildEnumCaseExpr($key));
             $routePhp       = $this->printer->prettyPrintExpr($routeExpr);
             $routesContent .= <<<PHP
-                '$key' => static fn (): \\$routeContract => $routePhp,
+                $keyPhp => static fn (): \\$routeContract => $routePhp,
 
                 PHP;
         }
