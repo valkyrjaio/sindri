@@ -1,6 +1,17 @@
 # Release Notes for 26.x
 
-## [Unreleased](https://github.com/valkyrjaio/sindri/compare/v26.0.0...26.x)
+## [Unreleased](https://github.com/valkyrjaio/sindri/compare/v26.1.0...26.x)
+
+## [v26.1.0](https://github.com/valkyrjaio/sindri/compare/v26.0.0...v26.1.0) - 2026-04-25
+
+* [Composer] Update composer lock file by [@MelechMizrachi](https://github.com/MelechMizrachi) in https://github.com/valkyrjaio/sindri-php/pull/24
+* [Composer] Update composer dependencies by [@valkyrja-volundr](https://github.com/valkyrja-volundr)[bot] in https://github.com/valkyrjaio/sindri-php/pull/25
+* [Refactor] Reduce complexity of AST route/config readers by [@MelechMizrachi](https://github.com/MelechMizrachi) in https://github.com/valkyrjaio/sindri-php/pull/26
+* [Ast] Extract CLI/HTTP Route Parameter and Middleware Readers by [@MelechMizrachi](https://github.com/MelechMizrachi) in https://github.com/valkyrjaio/sindri-php/pull/27
+* [Composer] Update composer dependencies by [@valkyrja-volundr](https://github.com/valkyrja-volundr)[bot] in https://github.com/valkyrjaio/sindri-php/pull/29
+* [GitHub] Update ci-phpunit-php workflow refs to v26.3.0 by [@valkyrja-volundr](https://github.com/valkyrja-volundr)[bot] in https://github.com/valkyrjaio/sindri-php/pull/28
+* [Tests] Use phpunit package's ServiceProviderTestCase in service provider tests by [@MelechMizrachi](https://github.com/MelechMizrachi) in https://github.com/valkyrjaio/sindri-php/pull/30
+* [Sindri] Update handler signatures to accept RouteContract parameter by [@MelechMizrachi](https://github.com/MelechMizrachi) in https://github.com/valkyrjaio/sindri-php/pull/31
 
 ## [v26.0.0](https://github.com/valkyrjaio/sindri/compare/26.0.0...v26.0.0) - 2026-04-23
 
