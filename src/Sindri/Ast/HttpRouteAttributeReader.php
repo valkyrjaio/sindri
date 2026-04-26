@@ -287,8 +287,8 @@ class HttpRouteAttributeReader extends RouteAttributeReader implements HttpRoute
     protected function buildRouteExpr(HttpRouteData $data): Expr
     {
         $args = [
-            $this->buildNamedArg('path', $this->buildStringExpr($data->path)),
-            $this->buildNamedArg('name', $this->buildStringExpr($data->name)),
+            $this->buildNamedArg('path', $this->buildEnumCaseExpr($data->path)),
+            $this->buildNamedArg('name', $this->buildEnumCaseExpr($data->name)),
         ];
 
         if ($data->isDynamic && $data->parameters !== []) {

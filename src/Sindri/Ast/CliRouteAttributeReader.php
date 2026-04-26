@@ -229,7 +229,7 @@ class CliRouteAttributeReader extends RouteAttributeReader implements CliRouteAt
     protected function buildRouteExpr(CliRouteData $data): Expr
     {
         $args = [
-            $this->buildNamedArg('name', $this->buildStringExpr($data->name)),
+            $this->buildNamedArg('name', $this->buildEnumCaseExpr($data->name)),
             $this->buildNamedArg('description', $this->buildStringExpr($data->description)),
         ];
 

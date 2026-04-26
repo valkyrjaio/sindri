@@ -55,6 +55,48 @@ final class AstHttpDataFileGeneratorTest extends TestCase
         self::assertStringContainsString("'test.route'", $contents);
     }
 
+    public function testGenerateClassContentsWithConstantKeyOutputsConstantReference(): void
+    {
+        $generator = new AstHttpDataFileGenerator();
+        $routeData = new HttpRouteData(path: '/test', name: 'Valkyrja\\Http\\Routing\\Constant\\RouteName::HOME');
+        $contents  = $generator->generateClassContents(
+            ['Valkyrja\\Http\\Routing\\Constant\\RouteName::HOME' => new String_('route-expr')],
+            ['Valkyrja\\Http\\Routing\\Constant\\RouteName::HOME' => $routeData],
+        );
+
+        self::assertStringContainsString('\\Valkyrja\\Http\\Routing\\Constant\\RouteName::HOME', $contents);
+        self::assertStringNotContainsString("'Valkyrja\\Http\\Routing\\Constant\\RouteName::HOME'", $contents);
+    }
+
+    public function testGenerateFileWithConstantRouteNameUsesConstantReferenceInPathsMap(): void
+    {
+        $directory = sys_get_temp_dir();
+        $className = 'AppHttpRoutingDataConstant' . __FUNCTION__;
+        $filePath  = $directory . '/' . $className . '.php';
+
+        $routeData = new HttpRouteData(
+            path: '/home',
+            name: 'Valkyrja\\Http\\Routing\\Constant\\RouteName::HOME',
+            requestMethods: ['Valkyrja\\Http\\Message\\Enum\\RequestMethod::GET'],
+            isDynamic: false,
+        );
+
+        $generator = new AstHttpDataFileGenerator();
+        $generator->generateFile(
+            directory: $directory,
+            className: $className,
+            namespace: 'App\\Data',
+            routes: ['Valkyrja\\Http\\Routing\\Constant\\RouteName::HOME' => new String_('route-expr')],
+            routeData: ['Valkyrja\\Http\\Routing\\Constant\\RouteName::HOME' => $routeData],
+        );
+
+        $contents = (string) file_get_contents($filePath);
+        @unlink($filePath);
+
+        self::assertStringContainsString('\\Valkyrja\\Http\\Routing\\Constant\\RouteName::HOME', $contents);
+        self::assertStringNotContainsString("'Valkyrja\\Http\\Routing\\Constant\\RouteName::HOME'", $contents);
+    }
+
     public function testGenerateFileReturnsSuccessOnNewFile(): void
     {
         $directory = sys_get_temp_dir();
