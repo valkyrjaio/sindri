@@ -21,6 +21,7 @@ use Sindri\Ast\Contract\CliRouteAttributeReaderContract;
 use Sindri\Ast\Contract\CliRouteParameterReaderContract;
 use Sindri\Ast\Contract\ComponentProviderReaderContract;
 use Sindri\Ast\Contract\ConfigReaderContract;
+use Sindri\Ast\Contract\GrpcRouteAttributeReaderContract;
 use Sindri\Ast\Contract\HttpRouteAttributeReaderContract;
 use Sindri\Ast\Contract\HttpRouteMiddlewareReaderContract;
 use Sindri\Ast\Contract\HttpRouteParameterReaderContract;
@@ -28,6 +29,7 @@ use Sindri\Ast\Contract\ListenerAttributeReaderContract;
 use Sindri\Ast\Contract\ListenerProviderReaderContract;
 use Sindri\Ast\Contract\RouteProviderReaderContract;
 use Sindri\Ast\Contract\ServiceProviderReaderContract;
+use Sindri\Ast\GrpcRouteAttributeReader;
 use Sindri\Ast\HttpRouteAttributeReader;
 use Sindri\Ast\HttpRouteMiddlewareReader;
 use Sindri\Ast\HttpRouteParameterReader;
@@ -38,10 +40,12 @@ use Sindri\Ast\ServiceProviderReader;
 use Sindri\Generator\Ast\Cli\AstCliDataFileGenerator;
 use Sindri\Generator\Ast\Container\AstContainerDataFileGenerator;
 use Sindri\Generator\Ast\Event\AstEventDataFileGenerator;
+use Sindri\Generator\Ast\Grpc\AstGrpcDataFileGenerator;
 use Sindri\Generator\Ast\Http\AstHttpDataFileGenerator;
 use Sindri\Generator\Cli\Contract\CliDataFileGeneratorContract;
 use Sindri\Generator\Container\Contract\ContainerDataFileGeneratorContract;
 use Sindri\Generator\Event\Contract\EventDataFileGeneratorContract;
+use Sindri\Generator\Grpc\Contract\GrpcDataFileGeneratorContract;
 use Sindri\Generator\Http\Contract\HttpDataFileGeneratorContract;
 use Valkyrja\Container\Manager\Contract\ContainerContract;
 use Valkyrja\Container\Provider\Contract\ServiceProviderContract;
@@ -109,6 +113,14 @@ class SindriAstServiceProvider implements ServiceProviderContract
         );
     }
 
+    public static function publishGrpcRouteAttributeReader(ContainerContract $container): void
+    {
+        $container->setSingleton(
+            GrpcRouteAttributeReaderContract::class,
+            new GrpcRouteAttributeReader()
+        );
+    }
+
     public static function publishListenerAttributeReader(ContainerContract $container): void
     {
         $container->setSingleton(
@@ -173,6 +185,14 @@ class SindriAstServiceProvider implements ServiceProviderContract
         );
     }
 
+    public static function publishGrpcDataFileGenerator(ContainerContract $container): void
+    {
+        $container->setSingleton(
+            GrpcDataFileGeneratorContract::class,
+            new AstGrpcDataFileGenerator()
+        );
+    }
+
     /**
      * @inheritDoc
      */
@@ -187,6 +207,7 @@ class SindriAstServiceProvider implements ServiceProviderContract
             HttpRouteMiddlewareReaderContract::class  => [self::class, 'publishHttpRouteMiddlewareReader'],
             HttpRouteParameterReaderContract::class   => [self::class, 'publishHttpRouteParameterReader'],
             HttpRouteAttributeReaderContract::class   => [self::class, 'publishHttpRouteAttributeReader'],
+            GrpcRouteAttributeReaderContract::class   => [self::class, 'publishGrpcRouteAttributeReader'],
             ListenerAttributeReaderContract::class    => [self::class, 'publishListenerAttributeReader'],
             ListenerProviderReaderContract::class     => [self::class, 'publishListenerProviderReader'],
             RouteProviderReaderContract::class        => [self::class, 'publishRouteProviderReader'],
@@ -195,6 +216,7 @@ class SindriAstServiceProvider implements ServiceProviderContract
             ContainerDataFileGeneratorContract::class => [self::class, 'publishContainerDataFileGenerator'],
             EventDataFileGeneratorContract::class     => [self::class, 'publishEventDataFileGenerator'],
             HttpDataFileGeneratorContract::class      => [self::class, 'publishHttpDataFileGenerator'],
+            GrpcDataFileGeneratorContract::class      => [self::class, 'publishGrpcDataFileGenerator'],
         ];
     }
 }

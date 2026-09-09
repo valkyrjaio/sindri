@@ -16,9 +16,9 @@ use Override;
 use Sindri\Tests\Fixtures\Provider\Sub\TestServiceProviderFixture;
 use Sindri\Tests\Fixtures\Provider\Sub\TestSubComponentProviderFixture;
 use Valkyrja\Application\Kernel\Contract\ApplicationContract;
-use Valkyrja\Application\Provider\Contract\ComponentProviderContract;
+use Valkyrja\Application\Provider\Abstract\ComponentProvider;
 
-final class TestComponentProviderFixture implements ComponentProviderContract
+final class TestComponentProviderFixture extends ComponentProvider
 {
     #[Override]
     public function getComponentProviders(ApplicationContract $app): array
@@ -30,23 +30,5 @@ final class TestComponentProviderFixture implements ComponentProviderContract
     public function getContainerProviders(ApplicationContract $app): array
     {
         return [new TestServiceProviderFixture()];
-    }
-
-    #[Override]
-    public function getEventProviders(ApplicationContract $app): array
-    {
-        return [];
-    }
-
-    #[Override]
-    public function getCliProviders(ApplicationContract $app): array
-    {
-        return [];
-    }
-
-    #[Override]
-    public function getHttpProviders(ApplicationContract $app): array
-    {
-        return [];
     }
 }

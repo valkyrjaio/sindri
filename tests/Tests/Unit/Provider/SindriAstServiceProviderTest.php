@@ -20,6 +20,7 @@ use Sindri\Ast\Contract\CliRouteAttributeReaderContract;
 use Sindri\Ast\Contract\CliRouteParameterReaderContract;
 use Sindri\Ast\Contract\ComponentProviderReaderContract;
 use Sindri\Ast\Contract\ConfigReaderContract;
+use Sindri\Ast\Contract\GrpcRouteAttributeReaderContract;
 use Sindri\Ast\Contract\HttpRouteAttributeReaderContract;
 use Sindri\Ast\Contract\HttpRouteMiddlewareReaderContract;
 use Sindri\Ast\Contract\HttpRouteParameterReaderContract;
@@ -27,6 +28,7 @@ use Sindri\Ast\Contract\ListenerAttributeReaderContract;
 use Sindri\Ast\Contract\ListenerProviderReaderContract;
 use Sindri\Ast\Contract\RouteProviderReaderContract;
 use Sindri\Ast\Contract\ServiceProviderReaderContract;
+use Sindri\Ast\GrpcRouteAttributeReader;
 use Sindri\Ast\HttpRouteAttributeReader;
 use Sindri\Ast\HttpRouteMiddlewareReader;
 use Sindri\Ast\HttpRouteParameterReader;
@@ -37,10 +39,12 @@ use Sindri\Ast\ServiceProviderReader;
 use Sindri\Generator\Ast\Cli\AstCliDataFileGenerator;
 use Sindri\Generator\Ast\Container\AstContainerDataFileGenerator;
 use Sindri\Generator\Ast\Event\AstEventDataFileGenerator;
+use Sindri\Generator\Ast\Grpc\AstGrpcDataFileGenerator;
 use Sindri\Generator\Ast\Http\AstHttpDataFileGenerator;
 use Sindri\Generator\Cli\Contract\CliDataFileGeneratorContract;
 use Sindri\Generator\Container\Contract\ContainerDataFileGeneratorContract;
 use Sindri\Generator\Event\Contract\EventDataFileGeneratorContract;
+use Sindri\Generator\Grpc\Contract\GrpcDataFileGeneratorContract;
 use Sindri\Generator\Http\Contract\HttpDataFileGeneratorContract;
 use Sindri\Provider\SindriAstServiceProvider;
 use Valkyrja\PhpUnit\Abstract\ServiceProviderTestCase;
@@ -67,6 +71,24 @@ final class SindriAstServiceProviderTest extends ServiceProviderTestCase
         self::assertArrayHasKey(ContainerDataFileGeneratorContract::class, new SindriAstServiceProvider()->publishers());
         self::assertArrayHasKey(EventDataFileGeneratorContract::class, new SindriAstServiceProvider()->publishers());
         self::assertArrayHasKey(HttpDataFileGeneratorContract::class, new SindriAstServiceProvider()->publishers());
+        self::assertArrayHasKey(GrpcRouteAttributeReaderContract::class, new SindriAstServiceProvider()->publishers());
+        self::assertArrayHasKey(GrpcDataFileGeneratorContract::class, new SindriAstServiceProvider()->publishers());
+    }
+
+    public function testPublishGrpcRouteAttributeReader(): void
+    {
+        $callback = new SindriAstServiceProvider()->publishers()[GrpcRouteAttributeReaderContract::class];
+        $callback($this->container);
+
+        self::assertInstanceOf(GrpcRouteAttributeReader::class, $this->container->getSingleton(GrpcRouteAttributeReaderContract::class));
+    }
+
+    public function testPublishGrpcDataFileGenerator(): void
+    {
+        $callback = new SindriAstServiceProvider()->publishers()[GrpcDataFileGeneratorContract::class];
+        $callback($this->container);
+
+        self::assertInstanceOf(AstGrpcDataFileGenerator::class, $this->container->getSingleton(GrpcDataFileGeneratorContract::class));
     }
 
     public function testPublishCliRouteAttributeReader(): void

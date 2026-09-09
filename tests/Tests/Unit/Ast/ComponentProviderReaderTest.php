@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Sindri\Tests\Unit\Ast;
 
 use Sindri\Ast\ComponentProviderReader;
+use Sindri\Tests\Fixtures\Grpc\Provider\TestGrpcRouteProviderFixture;
 use Sindri\Tests\Fixtures\Provider\Sub\TestServiceProviderFixture;
 use Sindri\Tests\Fixtures\Provider\Sub\TestSubComponentProviderFixture;
 use Sindri\Tests\Unit\Abstract\TestCase;
@@ -70,6 +71,44 @@ final class ComponentProviderReaderTest extends TestCase
         self::assertSame([], $result->httpRouteProviders);
     }
 
+    public function testReadFileExtractsEmptyGrpcRouteProviders(): void
+    {
+        $result = new ComponentProviderReader()->readFile(self::$fixtureFile);
+
+        self::assertSame([], $result->grpcRouteProviders);
+    }
+
+    public function testReadFileExtractsGrpcRouteProviders(): void
+    {
+        $tmpFile = tempnam(sys_get_temp_dir(), 'sindri_test') . '.php';
+
+        file_put_contents($tmpFile, <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace Sindri\Tests\Tmp;
+
+            use Sindri\Tests\Fixtures\Grpc\Provider\TestGrpcRouteProviderFixture;
+            use Valkyrja\Application\Kernel\Contract\ApplicationContract;
+            use Valkyrja\Application\Provider\Abstract\ComponentProvider;
+
+            final class TmpComponentProvider extends ComponentProvider
+            {
+                public function getGrpcProviders(ApplicationContract $app): array
+                {
+                    return [new TestGrpcRouteProviderFixture()];
+                }
+            }
+            PHP);
+
+        $result = new ComponentProviderReader()->readFile($tmpFile);
+
+        @unlink($tmpFile);
+
+        self::assertSame([TestGrpcRouteProviderFixture::class], $result->grpcRouteProviders);
+    }
+
     public function testReadFileReturnsEmptyResultForFileWithNoClass(): void
     {
         $tmpFile = tempnam(sys_get_temp_dir(), 'sindri_test') . '.php';
@@ -84,5 +123,6 @@ final class ComponentProviderReaderTest extends TestCase
         self::assertSame([], $result->listenerProviders);
         self::assertSame([], $result->cliRouteProviders);
         self::assertSame([], $result->httpRouteProviders);
+        self::assertSame([], $result->grpcRouteProviders);
     }
 }

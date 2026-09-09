@@ -35,6 +35,7 @@ class ComponentProviderReader extends AstReader implements ComponentProviderRead
     protected const string METHOD_EVENT     = 'getEventProviders';
     protected const string METHOD_CLI       = 'getCliProviders';
     protected const string METHOD_HTTP      = 'getHttpProviders';
+    protected const string METHOD_GRPC      = 'getGrpcProviders';
 
     /**
      * @inheritDoc
@@ -61,6 +62,7 @@ class ComponentProviderReader extends AstReader implements ComponentProviderRead
             listenerProviders: $this->extractClassListFromValues($methods[self::METHOD_EVENT] ?? null, $useMap, $namespace),
             cliRouteProviders: $this->extractClassListFromValues($methods[self::METHOD_CLI] ?? null, $useMap, $namespace),
             httpRouteProviders: $this->extractClassListFromValues($methods[self::METHOD_HTTP] ?? null, $useMap, $namespace),
+            grpcRouteProviders: $this->extractClassListFromValues($methods[self::METHOD_GRPC] ?? null, $useMap, $namespace),
         );
     }
 }

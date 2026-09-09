@@ -14,37 +14,13 @@ namespace Sindri\Tests\Fixtures\Provider\Sub;
 
 use Override;
 use Valkyrja\Application\Kernel\Contract\ApplicationContract;
-use Valkyrja\Application\Provider\Contract\ComponentProviderContract;
+use Valkyrja\Application\Provider\Abstract\ComponentProvider;
 
-final class TestSubComponentProviderFixture implements ComponentProviderContract
+final class TestSubComponentProviderFixture extends ComponentProvider
 {
-    #[Override]
-    public function getComponentProviders(ApplicationContract $app): array
-    {
-        return [];
-    }
-
     #[Override]
     public function getContainerProviders(ApplicationContract $app): array
     {
         return [new TestServiceProviderFixture()];
-    }
-
-    #[Override]
-    public function getEventProviders(ApplicationContract $app): array
-    {
-        return [];
-    }
-
-    #[Override]
-    public function getCliProviders(ApplicationContract $app): array
-    {
-        return [];
-    }
-
-    #[Override]
-    public function getHttpProviders(ApplicationContract $app): array
-    {
-        return [];
     }
 }

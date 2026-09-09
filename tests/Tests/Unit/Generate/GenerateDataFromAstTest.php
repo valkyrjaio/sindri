@@ -23,6 +23,8 @@ use Sindri\Tests\Fixtures\Cli\Provider\TestMissingControllerProviderFixture;
 use Sindri\Tests\Fixtures\Cli\Provider\TestRouteProviderFixture;
 use Sindri\Tests\Fixtures\Event\Provider\TestListenerProviderFixture;
 use Sindri\Tests\Fixtures\Event\Provider\TestMissingListenerProviderFixture;
+use Sindri\Tests\Fixtures\Grpc\Provider\TestGrpcRouteProviderFixture;
+use Sindri\Tests\Fixtures\Grpc\Provider\TestMissingControllerProviderFixture as GrpcTestMissingControllerProviderClass;
 use Sindri\Tests\Fixtures\Http\Provider\TestMissingControllerProviderFixture as HttpTestMissingControllerProviderClass;
 use Sindri\Tests\Fixtures\Http\Provider\TestRouteProviderFixture as HttpTestRouteProviderClass;
 use Sindri\Tests\Fixtures\Provider\Sub\TestServiceProviderFixture;
@@ -31,6 +33,7 @@ use Valkyrja\Cli\Interaction\Output\Contract\OutputContract;
 use Valkyrja\Cli\Interaction\Output\Factory\Contract\OutputFactoryContract;
 use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
 
+use function file_get_contents;
 use function glob;
 use function mkdir;
 use function realpath;
@@ -622,6 +625,109 @@ final class GenerateDataFromAstTest extends TestCase
         self::assertInstanceOf(OutputContract::class, $result);
     }
 
+    public function testGenerateGrpcDataWithRealProvider(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        /** @var non-empty-string $grpcDir */
+        $grpcDir = realpath(__DIR__ . '/../../Fixtures/Grpc');
+
+        $config = new ConfigResult(
+            namespace: 'Sindri\\Tests\\Fixtures\\Grpc',
+            dir: $grpcDir,
+            dataPath: $tmpDir,
+            dataNamespace: 'Sindri\\Tests\\Fixtures\\Grpc\\Data',
+        );
+
+        $result = $walker->callGenerateGrpcData(
+            [TestGrpcRouteProviderFixture::class],
+            $config,
+            $output,
+        );
+
+        $generated = (string) file_get_contents($tmpDir . '/AppGrpcRoutingData.php');
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+        self::assertStringContainsString("'/pkg.Greeter/SayHello'", $generated);
+        self::assertStringContainsString("'/pkg.Greeter/Chat'", $generated);
+    }
+
+    public function testGenerateGrpcDataWithMissingProviderFileSkips(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        $config = new ConfigResult(
+            namespace: 'App',
+            dir: '/nonexistent',
+            dataPath: $tmpDir,
+            dataNamespace: 'App\\Data',
+        );
+
+        $result = $walker->callGenerateGrpcData(
+            ['App\\Provider\\Missing'],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateGrpcDataWithMissingControllerClassFileSkips(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        /** @var non-empty-string $grpcDir */
+        $grpcDir = realpath(__DIR__ . '/../../Fixtures/Grpc');
+
+        $config = new ConfigResult(
+            namespace: 'Sindri\\Tests\\Fixtures\\Grpc',
+            dir: $grpcDir,
+            dataPath: $tmpDir,
+            dataNamespace: 'Sindri\\Tests\\Fixtures\\Grpc\\Data',
+        );
+
+        $result = $walker->callGenerateGrpcData(
+            [GrpcTestMissingControllerProviderClass::class],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
@@ -712,6 +818,14 @@ final class GenerateDataFromAstTest extends TestCase
                 OutputContract $output,
             ): OutputContract {
                 return $this->generateHttpData($httpRouteProviders, $config, $output);
+            }
+
+            public function callGenerateGrpcData(
+                array $grpcRouteProviders,
+                ConfigResult $config,
+                OutputContract $output,
+            ): OutputContract {
+                return $this->generateGrpcData($grpcRouteProviders, $config, $output);
             }
         };
     }
