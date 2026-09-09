@@ -26,11 +26,12 @@ use function array_values;
 readonly class ComponentProviderResult
 {
     /**
-     * @param class-string[] $componentProviders Sub-component providers (getComponentProviders)
-     * @param class-string[] $serviceProviders   Container/service providers (getContainerProviders)
-     * @param class-string[] $listenerProviders  Event listener providers (getEventProviders)
-     * @param class-string[] $cliRouteProviders  CLI route providers (getCliProviders)
-     * @param class-string[] $httpRouteProviders HTTP route providers (getHttpProviders)
+     * @param class-string[] $componentProviders  Sub-component providers (getComponentProviders)
+     * @param class-string[] $serviceProviders    Container/service providers (getContainerProviders)
+     * @param class-string[] $listenerProviders   Event listener providers (getEventProviders)
+     * @param class-string[] $cliRouteProviders   CLI route providers (getCliProviders)
+     * @param class-string[] $httpRouteProviders  HTTP route providers (getHttpProviders)
+     * @param class-string[] $queueRouteProviders Queue route providers (getQueueProviders)
      */
     public function __construct(
         public array $componentProviders = [],
@@ -38,6 +39,7 @@ readonly class ComponentProviderResult
         public array $listenerProviders = [],
         public array $cliRouteProviders = [],
         public array $httpRouteProviders = [],
+        public array $queueRouteProviders = [],
     ) {
     }
 
@@ -52,6 +54,7 @@ readonly class ComponentProviderResult
             listenerProviders: array_values(array_unique([...$this->listenerProviders, ...$other->listenerProviders])),
             cliRouteProviders: array_values(array_unique([...$this->cliRouteProviders, ...$other->cliRouteProviders])),
             httpRouteProviders: array_values(array_unique([...$this->httpRouteProviders, ...$other->httpRouteProviders])),
+            queueRouteProviders: array_values(array_unique([...$this->queueRouteProviders, ...$other->queueRouteProviders])),
         );
     }
 }

@@ -63,4 +63,12 @@ final class SindriComponentProviderTest extends TestCase
 
         self::assertSame([], $result);
     }
+
+    public function testGetQueueProvidersReturnsEmptyArray(): void
+    {
+        $app    = self::createStub(ApplicationContract::class);
+        $result = new SindriComponentProvider()->getQueueProviders($app);
+
+        self::assertSame([], $result);
+    }
 }

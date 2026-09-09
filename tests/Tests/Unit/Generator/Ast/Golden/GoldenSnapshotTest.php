@@ -19,6 +19,7 @@ use Sindri\Generator\Ast\Cli\AstCliDataFileGenerator;
 use Sindri\Generator\Ast\Container\AstContainerDataFileGenerator;
 use Sindri\Generator\Ast\Event\AstEventDataFileGenerator;
 use Sindri\Generator\Ast\Http\AstHttpDataFileGenerator;
+use Sindri\Generator\Ast\Queue\AstQueueDataFileGenerator;
 use Sindri\Tests\Unit\Abstract\TestCase;
 
 use function file_get_contents;
@@ -28,7 +29,7 @@ use function sys_get_temp_dir;
 use function unlink;
 
 /**
- * Full-output golden/snapshot tests for the four Ast data-file generators.
+ * Full-output golden/snapshot tests for the Ast data-file generators.
  *
  * Unlike the per-generator unit tests (which assert individual substrings such as
  * `routes:` or a single route key), these pin the ENTIRE emitted source against a
@@ -110,6 +111,31 @@ final class GoldenSnapshotTest extends TestCase
         @unlink($filePath);
 
         $generator = new AstCliDataFileGenerator();
+        $generator->generateFile(
+            directory: sys_get_temp_dir(),
+            className: $className,
+            namespace: 'App\\Data',
+            routes: $routes,
+        );
+
+        $actual = (string) file_get_contents($filePath);
+        @unlink($filePath);
+
+        $this->assertGolden($actual, $className);
+    }
+
+    public function testQueueRoutingDataMatchesGolden(): void
+    {
+        $routes = [
+            'SendWelcomeEmail' => new String_('send-welcome-email-expr'),
+            'ChargeCard'       => new String_('charge-card-expr'),
+        ];
+
+        $className = 'AppQueueRoutingData';
+        $filePath  = sys_get_temp_dir() . '/' . $className . '.php';
+        @unlink($filePath);
+
+        $generator = new AstQueueDataFileGenerator();
         $generator->generateFile(
             directory: sys_get_temp_dir(),
             className: $className,

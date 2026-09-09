@@ -23,6 +23,7 @@ use Sindri\Ast\Contract\ConfigReaderContract;
 use Sindri\Ast\Contract\HttpRouteAttributeReaderContract;
 use Sindri\Ast\Contract\ListenerAttributeReaderContract;
 use Sindri\Ast\Contract\ListenerProviderReaderContract;
+use Sindri\Ast\Contract\QueueRouteAttributeReaderContract;
 use Sindri\Ast\Contract\RouteProviderReaderContract;
 use Sindri\Ast\Contract\ServiceProviderReaderContract;
 use Sindri\Ast\Data\Result\ComponentProviderResult;
@@ -30,6 +31,7 @@ use Sindri\Ast\Data\Result\ConfigResult;
 use Sindri\Ast\HttpRouteAttributeReader;
 use Sindri\Ast\ListenerAttributeReader;
 use Sindri\Ast\ListenerProviderReader;
+use Sindri\Ast\QueueRouteAttributeReader;
 use Sindri\Ast\RouteProviderReader;
 use Sindri\Ast\ServiceProviderReader;
 use Sindri\Constant\SindriInfo;
@@ -37,11 +39,13 @@ use Sindri\Generator\Ast\Cli\AstCliDataFileGenerator;
 use Sindri\Generator\Ast\Container\AstContainerDataFileGenerator;
 use Sindri\Generator\Ast\Event\AstEventDataFileGenerator;
 use Sindri\Generator\Ast\Http\AstHttpDataFileGenerator;
+use Sindri\Generator\Ast\Queue\AstQueueDataFileGenerator;
 use Sindri\Generator\Cli\Contract\CliDataFileGeneratorContract;
 use Sindri\Generator\Container\Contract\ContainerDataFileGeneratorContract;
 use Sindri\Generator\Enum\GenerateStatus;
 use Sindri\Generator\Event\Contract\EventDataFileGeneratorContract;
 use Sindri\Generator\Http\Contract\HttpDataFileGeneratorContract;
+use Sindri\Generator\Queue\Contract\QueueDataFileGeneratorContract;
 use Valkyrja\Cli\Interaction\Formatter\ErrorFormatter;
 use Valkyrja\Cli\Interaction\Formatter\HighlightedTextFormatter;
 use Valkyrja\Cli\Interaction\Formatter\SuccessFormatter;
@@ -73,11 +77,13 @@ abstract class GenerateDataFromAst
         protected ServiceProviderReaderContract $serviceProviderReader = new ServiceProviderReader(),
         protected CliRouteAttributeReaderContract $cliRouteAttributeReader = new CliRouteAttributeReader(),
         protected HttpRouteAttributeReaderContract $httpRouteAttributeReader = new HttpRouteAttributeReader(),
+        protected QueueRouteAttributeReaderContract $queueRouteAttributeReader = new QueueRouteAttributeReader(),
         protected ListenerAttributeReaderContract $listenerAttributeReader = new ListenerAttributeReader(),
         protected ContainerDataFileGeneratorContract $containerGenerator = new AstContainerDataFileGenerator(),
         protected EventDataFileGeneratorContract $eventGenerator = new AstEventDataFileGenerator(),
         protected CliDataFileGeneratorContract $cliGenerator = new AstCliDataFileGenerator(),
         protected HttpDataFileGeneratorContract $httpGenerator = new AstHttpDataFileGenerator(),
+        protected QueueDataFileGeneratorContract $queueGenerator = new AstQueueDataFileGenerator(),
     ) {
     }
 
@@ -95,6 +101,7 @@ abstract class GenerateDataFromAst
         $output = $this->generateEventData($providers->listenerProviders, $config, $output);
         $output = $this->generateCliData($providers->cliRouteProviders, $config, $output);
         $output = $this->generateHttpData($providers->httpRouteProviders, $config, $output);
+        $output = $this->generateQueueData($providers->queueRouteProviders, $config, $output);
 
         return $output->withAddedMessages(new NewLine());
     }
@@ -317,6 +324,52 @@ abstract class GenerateDataFromAst
         $status = $this->cliGenerator->generateFile(
             directory: $config->dataPath,
             className: 'AppCliRoutingData',
+            namespace: $config->dataNamespace,
+            routes: $allRoutes,
+        );
+
+        return $this->addMessagesForGenerateStatus($output, $status)
+            ->withAddedMessages(new NewLine())
+            ->writeMessages();
+    }
+
+    /**
+     * Generate the queue routing data file.
+     *
+     * @param class-string[] $queueRouteProviders
+     */
+    protected function generateQueueData(array $queueRouteProviders, ConfigResult $config, OutputContract $output): OutputContract
+    {
+        $output = $output->withAddedMessages(
+            new Message('Generating Queue Routes Data...................'),
+        )->writeMessages();
+
+        $allRoutes = [];
+
+        foreach ($queueRouteProviders as $providerClass) {
+            $filePath = $this->fqnToFilePath($providerClass, $config->namespace, $config->dir);
+
+            if ($filePath === '' || ! is_file($filePath)) {
+                continue;
+            }
+
+            $providerResult = $this->routeProviderReader->readFile($filePath);
+
+            foreach ($providerResult->controllerClasses as $controllerClass) {
+                $controllerPath = $this->fqnToFilePath($controllerClass, $config->namespace, $config->dir);
+
+                if ($controllerPath === '' || ! is_file($controllerPath)) {
+                    continue;
+                }
+
+                $attrResult = $this->queueRouteAttributeReader->readFile($controllerPath);
+                $allRoutes  = [...$allRoutes, ...$attrResult->routes];
+            }
+        }
+
+        $status = $this->queueGenerator->generateFile(
+            directory: $config->dataPath,
+            className: 'AppQueueRoutingData',
             namespace: $config->dataNamespace,
             routes: $allRoutes,
         );

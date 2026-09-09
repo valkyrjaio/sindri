@@ -26,11 +26,14 @@ use Sindri\Tests\Fixtures\Event\Provider\TestMissingListenerProviderFixture;
 use Sindri\Tests\Fixtures\Http\Provider\TestMissingControllerProviderFixture as HttpTestMissingControllerProviderClass;
 use Sindri\Tests\Fixtures\Http\Provider\TestRouteProviderFixture as HttpTestRouteProviderClass;
 use Sindri\Tests\Fixtures\Provider\Sub\TestServiceProviderFixture;
+use Sindri\Tests\Fixtures\Queue\Provider\TestMissingControllerProviderFixture as QueueMissingControllerProviderFixture;
+use Sindri\Tests\Fixtures\Queue\Provider\TestQueueRouteProviderFixture;
 use Sindri\Tests\Unit\Abstract\TestCase;
 use Valkyrja\Cli\Interaction\Output\Contract\OutputContract;
 use Valkyrja\Cli\Interaction\Output\Factory\Contract\OutputFactoryContract;
 use Valkyrja\Cli\Routing\Data\Contract\RouteContract;
 
+use function file_get_contents;
 use function glob;
 use function mkdir;
 use function realpath;
@@ -492,6 +495,109 @@ final class GenerateDataFromAstTest extends TestCase
         self::assertInstanceOf(OutputContract::class, $result);
     }
 
+    public function testGenerateQueueDataWithRealProvider(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        /** @var non-empty-string $queueDir */
+        $queueDir = realpath(__DIR__ . '/../../Fixtures/Queue');
+
+        $config = new ConfigResult(
+            namespace: 'Sindri\\Tests\\Fixtures\\Queue',
+            dir: $queueDir,
+            dataPath: $tmpDir,
+            dataNamespace: 'Sindri\\Tests\\Fixtures\\Queue\\Data',
+        );
+
+        $result = $walker->callGenerateQueueData(
+            [TestQueueRouteProviderFixture::class],
+            $config,
+            $output,
+        );
+
+        $generated = (string) file_get_contents($tmpDir . '/AppQueueRoutingData.php');
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+        // The provider's handler class was walked and its attributed job collected
+        self::assertStringContainsString("'SendWelcomeEmail'", $generated);
+    }
+
+    public function testGenerateQueueDataWithMissingProviderFileSkips(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        $config = new ConfigResult(
+            namespace: 'App',
+            dir: '/nonexistent',
+            dataPath: $tmpDir,
+            dataNamespace: 'App\\Data',
+        );
+
+        $result = $walker->callGenerateQueueData(
+            ['App\\Provider\\Missing'],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
+    public function testGenerateQueueDataWithMissingControllerClassFileSkips(): void
+    {
+        $tmpDir = sys_get_temp_dir() . '/' . $this->name();
+        mkdir($tmpDir);
+
+        $output        = $this->buildChainableOutputStub();
+        $outputFactory = self::createStub(OutputFactoryContract::class);
+        $walker        = $this->makeWalker($outputFactory);
+
+        /** @var non-empty-string $queueDir */
+        $queueDir = realpath(__DIR__ . '/../../Fixtures/Queue');
+
+        $config = new ConfigResult(
+            namespace: 'Sindri\\Tests\\Fixtures\\Queue',
+            dir: $queueDir,
+            dataPath: $tmpDir,
+            dataNamespace: 'Sindri\\Tests\\Fixtures\\Queue\\Data',
+        );
+
+        $result = $walker->callGenerateQueueData(
+            [QueueMissingControllerProviderFixture::class],
+            $config,
+            $output,
+        );
+
+        foreach (glob($tmpDir . '/*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+
+        @rmdir($tmpDir);
+
+        self::assertInstanceOf(OutputContract::class, $result);
+    }
+
     public function testGenerateCliDataWithMissingProviderFileSkips(): void
     {
         $tmpDir = sys_get_temp_dir() . '/' . $this->name();
@@ -712,6 +818,14 @@ final class GenerateDataFromAstTest extends TestCase
                 OutputContract $output,
             ): OutputContract {
                 return $this->generateHttpData($httpRouteProviders, $config, $output);
+            }
+
+            public function callGenerateQueueData(
+                array $queueRouteProviders,
+                ConfigResult $config,
+                OutputContract $output,
+            ): OutputContract {
+                return $this->generateQueueData($queueRouteProviders, $config, $output);
             }
         };
     }

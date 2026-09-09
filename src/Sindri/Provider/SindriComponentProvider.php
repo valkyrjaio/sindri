@@ -67,4 +67,13 @@ class SindriComponentProvider implements ComponentProviderContract
     {
         return [];
     }
+
+    /**
+     * @inheritDoc
+     */
+    #[Override]
+    public function getQueueProviders(ApplicationContract $app): array
+    {
+        return [];
+    }
 }
